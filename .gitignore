@@ -1,0 +1,71 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+*.egg-info/
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+
+# PyTorch / models
+*.pt
+*.pth
+*.bin
+*.safetensors
+*.gguf
+*.onnx
+checkpoints/
+models/
+huggingface/
+.cache/
+
+# CUDA / build
+*.o
+*.obj
+*.cubin
+*.fatbin
+*.ptx
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.cursor/
+.opencode/
+
+# Logs / data
+logs/
+*.log
+wandb/
+runs/
+nsys-rep/
+*.nsys-rep
+*.ncu-rep
+results/*.csv
+results/*.json
+
+# Secrets
+.env
+.env.local
+*.pem
+*.key
+
+# Mini-vLLM project (Week 4) build artifacts
+mini-vllm/build/
+mini-vllm/.pytest_cache/
