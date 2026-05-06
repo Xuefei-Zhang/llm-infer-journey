@@ -25,10 +25,10 @@ gaps_to_close:
   - 量化、投机解码 (Week 3 重点)
 goal: 30 天后拿到字节 AML / Moonshot / DeepSeek 类公司的 LLM 推理岗 offer
 hardware:
-  - Intel Core Ultra 9 285K + MSI PRO B860-P WIFI + 32GB DDR5
-  - GPU: 待定 (PRO 5000 48GB 或 PRO 6000 96GB Blackwell)
+  - Intel Core Ultra 9 285K + MSI PRO B860-P WIFI + ~30GB DDR5
+  - GPU: NVIDIA RTX PRO 6000 Blackwell 96GB (SM 10.0, 1792 GB/s, 600W)
+  - 系统: Ubuntu 24.04 LTS + Driver 595.58.03 + CUDA 13.2
   - Mac mini M4（备用，端侧 MLX 实验）
-  - AutoDL 4090/A100（GPU 到货前过渡）
 plan_root: 见 README.md（10 个文档构成完整 30 天计划）
 current_day: 见 progress.md 最新条目
 ```
@@ -84,7 +84,7 @@ current_day: 见 progress.md 最新条目
 
 ### 规则 6：诚实标注 AI 的知识边界
 
-**当前是 2026 年 4 月底**。AI 的训练数据可能截止 2025 年初。所以：
+**当前是 2026 年 5 月初**。AI 的训练数据可能截止 2025 年初。所以：
 
 - 涉及 vLLM v0.20+ / DeepSeek V4 / Qwen3.6 / FA4 / TurboQuant / P-EAGLE 等 2025 年 H2 之后的内容，AI **必须明说**："这部分我可能信息过时，建议用 WebFetch 查最新"，并 **主动调 WebFetch 工具** 查最新文档。
 - 不允许编造 API、论文链接、数字。**没把握就说"我不确定，让我查"**。
@@ -269,6 +269,7 @@ Start-of-session checklist (AI 在心里走一遍):
 ## 九、版本
 
 - v1.0 - 2026-05-01 - 初版，配合 30 天计划 v2.0
+- v1.1 - 2026-05-06 - 硬件落地（PRO 6000 Blackwell 96GB），Day 1 推迟到 2026-05-07，删除 AutoDL/双 GPU 方案分支
 
 ---
 

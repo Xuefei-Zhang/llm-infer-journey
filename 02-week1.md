@@ -2,7 +2,7 @@
 
 > **目标**：从"会写 C++ 驱动"到"能写 CUDA kernel + 算 LLM 推理显存/延迟公式 + 跑通 vLLM hello world"。
 >
-> **前 5 天用 AutoDL 4090 云上做**（GPU 还没到货），后 2 天用本地 PRO 5000/6000。
+> **环境**：本地 PRO 6000 Blackwell 96GB + Ubuntu 24.04 + CUDA 13.2（Day 0 已就绪）。
 >
 > **每日产出**：commit 到自己的 GitHub repo `llm-infer-journey/week1/dayN/`
 
@@ -12,9 +12,9 @@
 
 ```mermaid
 graph LR
-    D1[Day 1<br/>环境+第1个kernel] --> D2[Day 2<br/>GEMM 朴素版]
+    D1[Day 1<br/>环境校准+第1个kernel] --> D2[Day 2<br/>GEMM 朴素版]
     D2 --> D3[Day 3<br/>GEMM 优化到 cuBLAS 70%]
-    D3 --> D4[Day 4<br/>FlashAttention v1 原理]
+    D3 --> D4[Day 4<br/>FlashAttention 原理]
     D4 --> D5[Day 5<br/>LLM 推理算力/显存公式]
     D5 --> D6[Day 6<br/>vLLM 部署 hello world]
     D6 --> D7[Day 7<br/>📝 博客1 + 复盘]
@@ -25,30 +25,30 @@ graph LR
 **Week 1 最终交付：**
 - ✅ GitHub: 6 个 CUDA kernel 实现（5 个 GEMM 版本 + 1 个 softmax）
 - ✅ 博客 1：《从系统软件到 LLM 推理：Week 1 学到的 8 个核心概念》
-- ✅ 跑通 vLLM 部署 Qwen3-8B-FP8，会用 benchmark 工具
+- ✅ 跑通 vLLM 部署 Qwen3.6-27B-FP8，会用 benchmark 工具
 
 ---
 
-## Day 1：环境搭建 + 第一个 CUDA Kernel（5月2日）
+## Day 1：环境校准 + 第一个 CUDA Kernel（2026-05-07，周四）
 
-### 上午（4h）：云 GPU 启动 + CUDA 工具链
+### 上午（4h）：本地 CUDA 工具链验证 + 工具安装
 
 ```mermaid
 graph TD
-    A[注册 AutoDL] --> B[租 RTX 4090<br/>¥2.5/h]
-    B --> C[镜像选 PyTorch 2.5+<br/>CUDA 12.6]
-    C --> D[SSH + VSCode Remote]
-    D --> E[git clone llm-infer-journey]
-    E --> F[nvidia-smi 验证]
-    F --> G[nvcc --version 验证]
+    A[确认 nvidia-smi/nvcc<br/>Driver 595/CUDA 13.2] --> B[创建 venv<br/>uv venv --python 3.12]
+    B --> C[uv pip install vllm==0.20.1]
+    C --> D[uv pip install torch triton]
+    D --> E[sudo apt install nsight-systems<br/>nsight-compute]
+    E --> F[git init llm-infer-journey<br/>+ push GitHub]
 ```
 
 **checklist：**
-- [ ] AutoDL 充值 ¥500（够 200 小时 4090）
-- [ ] 创建 GitHub repo `llm-infer-journey`，README 写"Intel ISP 工程师转型 LLM 推理 30 天打卡"
-- [ ] VSCode Remote-SSH 连上云 GPU
+- [ ] `nvidia-smi` 显示 PRO 6000 Blackwell 96GB / Driver 595.58.03
+- [ ] `nvcc -V` 显示 CUDA 13.2
+- [ ] `python -c "import torch; print(torch.cuda.get_device_capability())"` → `(10, 0)`
+- [ ] 创建 `~/self/llm-infer-journey/.venv`，激活后装 vllm 0.20.1 + torch + triton
 - [ ] 安装 `nsight-systems` `nsight-compute`（性能分析必备）
-- [ ] `pip install torch torchvision triton vllm`
+- [ ] 创建 GitHub repo `llm-infer-journey`，README 写"Intel ISP 工程师转型 LLM 推理 30 天打卡"
 
 ### 下午（4h）：写第一个 CUDA kernel
 
@@ -71,8 +71,8 @@ __global__ void vec_add(const float* a, const float* b, float* c, int n) {
 ### 晚上（1h）：阅读
 
 **必读：**
-- 📖 [PMPP 第 4 版第 1-3 章](https://www.elsevier.com/books/programming-massively-parallel-processors/hwu/978-0-323-91231-0)（PDF 网上能找到）
-- 🎥 [Mark Saroufim《GPU MODE Lecture 1》](https://www.youtube.com/@GPUMODE) - 30 分钟入门
+- 📖 [PMPP 第 4 版第 1-3 章](https://www.elsevier.com/books/programming-massively-parallel-processors/hwu/978-0-323-91231-0)
+- 🎥 [GPU MODE Lecture 1](https://www.youtube.com/@GPUMODE) - 30 分钟入门
 
 ### Checkpoint
 - [ ] vec_add.cu 编译运行，验证结果正确
@@ -81,7 +81,7 @@ __global__ void vec_add(const float* a, const float* b, float* c, int n) {
 
 ---
 
-## Day 2：GEMM 朴素实现 + 共享内存（5月3日）
+## Day 2：GEMM 朴素实现 + 共享内存（2026-05-08，周五）
 
 ### 上午（4h）：朴素 GEMM
 
@@ -129,11 +129,11 @@ ncu --set full -o gemm_v2 ./gemm_v2
 ### Checkpoint
 - [ ] v1 vs v2 性能对比表（M=N=K=4096，单位 TFLOPS）
 - [ ] 能解释 shared memory bank conflict
-- [ ] 知道 4090 的理论 FP32 算力（82 TFLOPS）和带宽（1008 GB/s）
+- [ ] 知道 PRO 6000 Blackwell 的理论 FP32 算力（公开口径 ~125 TFLOPS）和带宽（1792 GB/s）
 
 ---
 
-## Day 3：GEMM 优化进阶 + Tensor Core（5月4日）
+## Day 3：GEMM 优化进阶 + Tensor Core（2026-05-09，周六）
 
 ### 上午（4h）：v3/v4 优化
 
@@ -142,9 +142,9 @@ ncu --set full -o gemm_v2 ./gemm_v2
 - **向量化加载**：`float4` 一次取 16 字节
 - **Double Buffering**：计算和加载重叠
 
-### 下午（4h）：Tensor Core 入门 (WMMA)
+### 下午（4h）：Tensor Core 入门 (WMMA → wgmma 过渡）
 
-**任务：用 Tensor Core 写 FP16 GEMM**
+**任务：用 WMMA 写 FP16 GEMM**
 
 ```cuda
 #include <mma.h>
@@ -169,19 +169,20 @@ __global__ void hgemm_wmma(half* A, half* B, float* C, int M, int N, int K) {
 - LLM 90% 算力消耗在 GEMM
 - Tensor Core 比 CUDA Core 快 8-16 倍
 - 之后学的 FlashAttention/cuBLASLt 都是 Tensor Core
+- WMMA 是入门，**Blackwell 的 wgmma + TMA 是 Week 3 重点**
 
 ### 晚上（1h）：阅读
-- 📄 [CUTLASS 文档](https://github.com/NVIDIA/cutlass/blob/main/media/docs/efficient_gemm.md) - 工业级 GEMM 怎么写
-- 📄 [Hopper / Blackwell wgmma 介绍](https://research.colfax-intl.com/cutlass-tutorial-wgmma-hopper/) - 为之后做铺垫
+- 📄 [CUTLASS efficient_gemm](https://github.com/NVIDIA/cutlass/blob/main/media/docs/efficient_gemm.md) - 工业级 GEMM 怎么写
+- 📄 [Hopper / Blackwell wgmma 介绍](https://research.colfax-intl.com/cutlass-tutorial-wgmma-hopper/)
 
 ### Checkpoint
 - [ ] 5 个版本性能对比图（commit 到 GitHub）
 - [ ] WMMA 版本 ≥ cuBLAS 50%
-- [ ] 理解：为什么 Blackwell 引入 wgmma 替代 wmma（async + warp group）
+- [ ] 能讲清楚：为什么 Blackwell 引入 wgmma 替代 wmma（async + warp group）
 
 ---
 
-## Day 4：FlashAttention 原理 + Softmax（5月5日）
+## Day 4：FlashAttention 原理 + Softmax（2026-05-10，周日）
 
 ### 上午（4h）：手写 Softmax kernel
 
@@ -203,13 +204,13 @@ def online_softmax(x):
     return [exp(xi - m_prev) / s_prev for xi in x]
 ```
 
-### 下午（4h）：FlashAttention v1 原理
+### 下午（4h）：FlashAttention v1 → v4 演进
 
 **必读论文（精读）：**
 - 📄 [FlashAttention (Dao 2022)](https://arxiv.org/abs/2205.14135)
 - 📄 [FlashAttention-2 (Dao 2023)](https://arxiv.org/abs/2307.08691)
 - 📄 [FlashAttention-3 (Shah 2024)](https://arxiv.org/abs/2407.08608) - Hopper TMA + wgmma
-- 📄 [FlashAttention-4 (2025)](https://tridao.me/blog/2025/flash4/) - Blackwell 专属，必读
+- 📄 [FlashAttention-4 (2025)](https://tridao.me/blog/2025/flash4/) - Blackwell 专属，Week 3 会装 `flash-attn-4[cu13]`
 
 **核心理解：**
 
@@ -239,26 +240,30 @@ graph LR
 
 ---
 
-## Day 5：LLM 推理算力/显存/延迟公式（5月6日）
+## Day 5：LLM 推理算力/显存/延迟公式（2026-05-11，周一）
 
 > **这一天最重要——LLM 推理工程师的"基本功"**
 
-### 上午（4h）：模型显存公式
+### 上午（4h）：模型显存公式（含 hybrid attention 修正）
 
 **Transformer 模型显存 = 权重 + KV cache + 激活值**
 
 ```
 权重显存 (GB) = 参数量 × 精度字节数
-  - 27B FP16 = 54 GB
+  - 27B BF16 = 54 GB
   - 27B FP8  = 27 GB
   - 27B FP4  = 13.5 GB
-  - 27B INT4 = 13.5 GB
 
-KV cache 显存 (GB/seq) = 2 × Layers × KV_heads × HeadDim × SeqLen × 字节数
-  - 27B (64L, 8 KV heads GQA, 128 head_dim) FP16, 32K context:
-    = 2 × 64 × 8 × 128 × 32768 × 2 = 8 GB
-  - 同上 FP8 = 4 GB
-  - 同上 INT4 (TurboQuant) = 2 GB
+KV cache 显存 (GB/seq) = 2 × Layers_full_attn × KV_heads × HeadDim × SeqLen × 字节数
+
+  ⚠️ Qwen3.6-27B 真实结构（来自 ~/models/Qwen3.6-27B/config.json）:
+     - 64 层中只有 16 层是 full_attention（其余 48 层是 linear_attention，KV state O(1)）
+     - GQA: 4 KV heads, head_dim 256
+     - 32K context FP8 KV: 2 × 16 × 4 × 256 × 32768 × 1 byte ≈ 1.0 GB
+     - 256K context FP8 KV: ≈ 8.4 GB
+
+  对比纯 dense（假设 64 层全 full_attention）:
+     - 32K FP8 KV: 4.2 GB（× 4 倍于 hybrid）
 
 激活值（推理时小，暂忽略）
 ```
@@ -266,10 +271,11 @@ KV cache 显存 (GB/seq) = 2 × Layers × KV_heads × HeadDim × SeqLen × 字�
 **任务：用 Python 写 `model_memory_calculator.py`**
 
 ```python
-def calc_memory(params_b, layers, kv_heads, head_dim,
+def calc_memory(params_b, layers_full_attn, kv_heads, head_dim,
                 weight_bits=8, kv_bits=8, seq_len=32768, batch=1):
     weight_gb = params_b * weight_bits / 8
-    kv_per_seq_gb = 2 * layers * kv_heads * head_dim * seq_len * (kv_bits/8) / 1e9
+    kv_per_seq_gb = (2 * layers_full_attn * kv_heads * head_dim
+                     * seq_len * (kv_bits/8) / 1e9)
     kv_total_gb = kv_per_seq_gb * batch
     return {
         "weight_gb": weight_gb,
@@ -278,25 +284,24 @@ def calc_memory(params_b, layers, kv_heads, head_dim,
         "total_gb": weight_gb + kv_total_gb,
     }
 
-# Qwen3.6 27B 在 PRO 5000 (48GB) 上能跑多大 context？
-print(calc_memory(27, 64, 8, 128, weight_bits=8, kv_bits=8, seq_len=64*1024))
-# → weight 27GB + KV 16GB = 43GB ✓ 能跑
+# Qwen3.6-27B-FP8 在 PRO 6000 (96GB) 上跑 256K context, 4 并发？
+print(calc_memory(27, 16, 4, 256, weight_bits=8, kv_bits=8,
+                  seq_len=256*1024, batch=4))
+# → weight 27GB + KV (8.4×4=34GB) = 61GB ✓ 余 35GB
 ```
 
 ### 下午（4h）：算力/延迟公式（Roofline 模型）
-
-**两个核心阶段：**
 
 ```mermaid
 graph TD
     subgraph Prefill 阶段
         P1[计算密集型<br/>Compute-bound] --> P2[公式: TTFT ≈ 2 × N_prompt × Params / FLOPS]
-        P2 --> P3[27B 模型 8K prompt 在 1 PFLOPS H100<br/>≈ 0.43s]
+        P2 --> P3[27B 模型 8K prompt 在 PRO 6000<br/>实测目标 < 1s]
     end
 
     subgraph Decode 阶段
         D1[访存密集型<br/>Memory-bound] --> D2[公式: TPS ≈ Bandwidth / ModelSize]
-        D2 --> D3[27B FP8 = 27GB<br/>PRO 5000: 1344 / 27 ≈ 50 tps<br/>PRO 6000: 1792 / 27 ≈ 66 tps]
+        D2 --> D3[27B FP8 = 27GB<br/>PRO 6000: 1792 / 27 ≈ 66 tps 上限]
     end
 
     style P1 fill:#fff3cd
@@ -314,43 +319,42 @@ else:
     bottleneck = memory (Decode, batch=1)
 ```
 
-**任务：把 Decode TPS 公式套到 PRO 5000/6000 + Qwen3.6 27B，画 batch=1/4/16/64 的曲线**
+**任务：把 Decode TPS 公式套到 PRO 6000 + Qwen3.6-27B-FP8，画 batch=1/4/16/64 的曲线**
 
 ### 晚上（1h）：必读
 - 📝 [Lilian Weng《Large Transformer Inference Optimization》](https://lilianweng.github.io/posts/2023-01-10-inference-optimization/)
 - 📝 [Anyscale《Continuous Batching》博客](https://www.anyscale.com/blog/continuous-batching-llm-inference)
 
 ### Checkpoint
-- [ ] `model_memory_calculator.py` 能正确算 Qwen3.6 / Llama4 / DeepSeek V4 / Nemotron-H
-- [ ] 能口算：27B 模型在 X 带宽下的理论 Decode TPS
+- [ ] `model_memory_calculator.py` 能正确算 Qwen3.6（hybrid）/ Llama4 / DeepSeek V4
+- [ ] 能口算：27B 模型在 1792 GB/s 下的理论 Decode TPS
 - [ ] 知道为什么 Decode 是 memory-bound 而 Prefill 是 compute-bound
 
 ---
 
-## Day 6：vLLM 部署 hello world + Benchmark（5月7日）
-
-> **如果 GPU 已到货，今天切换到本地。如果没到货，继续 AutoDL。**
+## Day 6：vLLM 部署 hello world + Benchmark（2026-05-12，周二）
 
 ### 上午（4h）：vLLM 安装与首次部署
 
 ```bash
-# 装最新版 vLLM
-pip install vllm==0.20.0
-
-# 部署 Qwen3-8B-FP8
-vllm serve Qwen/Qwen3-8B-FP8 \
-  --max-model-len 32768 \
+# 已在 Day 1 装好 vllm==0.20.1，直接部署 FP8 主力模型
+vllm serve ~/models/Qwen3.6-27B-FP8 \
+  --served-model-name Qwen3.6-27B-FP8 \
+  --max-model-len 65536 \
   --gpu-memory-utilization 0.9 \
-  --enable-prefix-caching
+  --enable-prefix-caching \
+  --kv-cache-dtype auto
 
 # 客户端测试（OpenAI 兼容）
 curl http://localhost:8000/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "Qwen/Qwen3-8B-FP8",
+    "model": "Qwen3.6-27B-FP8",
     "messages": [{"role": "user", "content": "解释 PagedAttention"}]
   }'
 ```
+
+> 💡 vLLM v0.20.1 已原生支持 `qwen3_5` 架构（即 Qwen3.6 系列），代码在 `vllm/model_executor/models/qwen3_5.py` + `qwen3_5_mtp.py`。
 
 ### 下午（4h）：Benchmark 工具链
 
@@ -360,14 +364,14 @@ curl http://localhost:8000/v1/chat/completions \
 # 1. vLLM 自带 benchmark
 python -m vllm.entrypoints.openai.api_server ...
 python benchmarks/benchmark_serving.py \
-  --model Qwen/Qwen3-8B-FP8 \
+  --model Qwen3.6-27B-FP8 \
   --dataset-name sharegpt \
   --num-prompts 1000 \
   --request-rate 10
 
 # 2. genai-perf (NVIDIA 官方)
 genai-perf profile \
-  -m Qwen/Qwen3-8B-FP8 \
+  -m Qwen3.6-27B-FP8 \
   --service-kind openai \
   --endpoint v1/chat/completions \
   --concurrency 1 4 16 64
@@ -375,7 +379,7 @@ genai-perf profile \
 # 3. evalscope (阿里, 综合评测)
 pip install evalscope
 evalscope perf \
-  --model Qwen/Qwen3-8B-FP8 \
+  --model Qwen3.6-27B-FP8 \
   --url http://localhost:8000/v1/chat/completions \
   --parallel 32
 ```
@@ -393,17 +397,17 @@ evalscope perf \
 
 ### 晚上（1h）：探索
 - 看 vLLM 启动日志，理解每个阶段（model loading → profile run → server start）
-- `nvidia-smi` 实时观察显存占用
+- `nvidia-smi` 实时观察显存占用，确认 KV cache pool 大小
 
 ### Checkpoint
-- [ ] vLLM 跑通 Qwen3-8B-FP8
+- [ ] vLLM 跑通 Qwen3.6-27B-FP8
 - [ ] 跑出 batch=1/16/64 的 throughput 对比表
-- [ ] 测出本机 TTFT、TPOT 数值
+- [ ] 测出本机 TTFT、TPOT 数值（对照 Day 5 理论上限 66 tps）
 - [ ] 截图三种 benchmark 工具的输出
 
 ---
 
-## Day 7：复盘 + 博客 1（5月8日）
+## Day 7：复盘 + 博客 1（2026-05-13，周三）
 
 ### 上午（4h）：整理 GitHub repo
 
@@ -440,7 +444,7 @@ llm-infer-journey/
 3. GEMM 5 个版本性能对比 + 火焰图（带数字、带图）
 4. FlashAttention：为什么是 IO 优化而不是算法优化（500 字）
 5. LLM 推理两阶段：Prefill compute-bound vs Decode memory-bound
-6. Roofline 模型实战：算 PRO 5000/6000 上的 Qwen3.6 理论上限
+6. Roofline 模型实战：算 PRO 6000 上 Qwen3.6-27B-FP8 的理论上限（66 tps）+ 实测对照
 7. vLLM 部署初体验 + 三种 benchmark 工具对比
 8. 下周计划
 
@@ -449,15 +453,15 @@ llm-infer-journey/
 - 个人博客 + 同步发到 [机器之心](https://www.jiqizhixin.com/)、[新智元](https://www.aiqxr.com/) 投稿
 
 ### 晚上（1h）：Week 2 准备
-- 安装 vLLM dev mode：`pip install -e ".[dev]"`
-- clone vLLM repo，浏览目录结构
+- clone vLLM repo（v0.20.1 tag），浏览目录结构
 - 预读 [Anatomy of vLLM 博客](https://blog.vllm.ai/2025/09/05/anatomy-of-vllm.html) 前半部分
+- `pip install -e ".[dev]"` 准备源码 hack 模式
 
 ### Checkpoint
 - [ ] GitHub repo 整理好，README 写完
 - [ ] 博客 1 发布（带链接）
 - [ ] 至少 1 张性能对比图
-- [ ] **【关键】给自己拍张工位 + GPU + 跑代码的照片，未来面试视觉素材**
+- [ ] **【关键】给自己拍张工位 + PRO 6000 + 跑代码的照片，未来面试视觉素材**
 
 ---
 
@@ -467,8 +471,9 @@ llm-infer-journey/
 |---|---|
 | GEMM 优化卡住到 Day 3 | 跳过 v4，直接学 WMMA，明天继续 |
 | FlashAttention 看不懂 | 只学 online softmax + 看动画演示，原理理解即可 |
-| 4090 抢不到 | 用 AutoDL A100 (¥7/h) 或 RTX 3090 (¥1.5/h)|
-| 本地 GPU 没到 | Day 6-7 也用云上跑，Week 2 再切本地 |
+| vLLM 0.20.1 装不上 | 退到 `vllm==0.20.0`；CUDA 13 兼容性问题查 vLLM GitHub Issue |
+| FP8 模型下载慢 | 先用已下完的 bf16 VL 版（~54GB）跑通流程，FP8 到位再切 |
+| 30GB 内存触顶 | 先升级到 64GB+ 再开 batch>16 的 benchmark |
 | 8h/天投入不够 | 优先保 Day 5 + Day 6（公式 + vLLM 部署）|
 
 ---
@@ -477,8 +482,8 @@ llm-infer-journey/
 
 ✅ **必须达成（否则 Week 2 不能开始）：**
 1. 能写 GEMM CUDA kernel（至少到 v2 共享内存版）
-2. 能算 LLM 显存公式 + Decode TPS 公式
-3. vLLM 跑通至少一个 FP8 模型
+2. 能算 LLM 显存公式 + Decode TPS 公式（含 hybrid attention 修正）
+3. vLLM 跑通 Qwen3.6-27B-FP8
 4. GitHub 有 ≥6 个 commit，每天有产出
 
 🎯 **加分项：**

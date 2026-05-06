@@ -59,8 +59,8 @@ graph TD
 │  转型 LLM 推理：vLLM 贡献者 / Blackwell 实战 │
 ├─────────────────────────────────────────────┤
 │ 【核心技能】                                  │
-│  - LLM 推理：vLLM, SGLang, MLA, FA4         │
-│  - GPU 编程：CUDA, Triton, Blackwell SM10.0 │
+│  - LLM 推理：vLLM v0.20.1, SGLang, MLA, FA4 │
+│  - GPU 编程：CUDA 13, Triton, Blackwell SM10│
 │  - 量化：FP8, NVFP4, Marlin, TurboQuant     │
 │  - 系统：Linux, FreeRTOS, ARM, x86, PCIe    │
 ├─────────────────────────────────────────────┤
@@ -121,11 +121,11 @@ graph TD
 > "用 vLLM 部署了 Qwen3 模型"
 
 **✅ 对的写法（量化 + 上下文 + 决策）：**
-> "在 RTX PRO 6000 Blackwell (SM10.0, 96GB) 上部署 Qwen3.6-27B：
-> - 用 LLM Compressor 做 NVFP4 量化（精度损失 <1.2% gsm8k）
-> - 启用 FlashAttention v4 + Prefix Caching + TurboQuant 2-bit KV
-> - 实现 256K context 单卡推理，Decode 90 tps（vs FP8 baseline 50 tps）
-> - 服务 4 路并发 Coding Agent，TTFT < 800ms"
+> "在 RTX PRO 6000 Blackwell (SM10.0, 96GB) 上部署 Qwen3.6-27B-FP8（hybrid 16 full-attn + 48 linear-attn 共 64 层）：
+> - baseline 用 Qwen 官方 FP8 权重；同时用 LLM Compressor 自产 NVFP4 版做对照
+> - 启用 FlashAttention v4 + Prefix Caching + FP8 KV cache
+> - 实现 256K context 单卡推理，Decode XX tps（实测，vs FP16 KV baseline）
+> - 服务 4 路并发 Coding Agent，TTFT < 800ms（带 prefix cache 命中）"
 
 ---
 
@@ -160,10 +160,10 @@ graph LR
 
 | 时间 | 投递阶段 | 数量 |
 |---|---|---|
-| Day 27（周三）| 第一批投：5-7 家第一梯队 | 5-7 |
-| Day 28-29 | 第一批响应 + 投第二批：5-8 家第二梯队 | 5-8 |
-| Day 30 | 第三批：第三梯队 + 备胎 | 5-10 |
-| Week 5 | 持续补投，跟进面试 | 10+ |
+| Day 27（周二，2026-06-02）| 第一批投：5-7 家第一梯队 | 5-7 |
+| Day 28-29（周三-四，6-03 ~ 6-04）| 第一批响应 + 投第二批：5-8 家第二梯队 | 5-8 |
+| Day 30（周五，2026-06-05）| 第三批：第三梯队 + 备胎 | 5-10 |
+| Week 5+（2026-06-08 起）| 持续补投，跟进面试 | 10+ |
 
 ---
 
@@ -319,14 +319,14 @@ gantt
     title Onboarding 后的持续成长
     dateFormat YYYY-MM-DD
     section 入职前
-    刷算法 + 复习八股       :2026-06-01, 30d
+    刷算法 + 复习八股       :2026-06-06, 30d
     section 入职后 0-3 月
-    熟悉团队 stack          :2026-07-01, 30d
-    第一个独立 owner 任务   :2026-08-01, 60d
+    熟悉团队 stack          :2026-07-06, 30d
+    第一个独立 owner 任务   :2026-08-06, 60d
     section 入职后 3-6 月
-    主导 1 个优化项目        :2026-10-01, 90d
+    主导 1 个优化项目        :2026-10-06, 90d
     section 入职后 6-12 月
-    冲资深 / 晋升            :2027-01-01, 180d
+    冲资深 / 晋升            :2027-01-06, 180d
 ```
 
 **持续做的事：**

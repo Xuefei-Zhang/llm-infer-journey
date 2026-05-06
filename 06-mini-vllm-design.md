@@ -2,7 +2,11 @@
 
 > Week 4 的核心交付物，**简历最重的硬通货**。
 >
-> **设计目标**：5 天造一个可跑的 LLM 推理引擎，达到 vLLM 30-50% 性能，覆盖简历所有关键词（PagedAttention / Continuous Batching / MLA / FlashAttention v4 / FP8 / Triton）。
+> **设计目标**：5 天造一个可跑的 LLM 推理引擎，达到 vLLM v0.20.1 的 30-50% 性能，覆盖简历所有关键词（PagedAttention / Continuous Batching / MLA / FlashAttention v4 / FP8 / Triton）。
+>
+> **环境**：本地 PRO 6000 96GB + Ubuntu 24.04 + CUDA 13.2 + ~30GB host RAM。
+>
+> ⚠️ **30GB host RAM 是 Week 4 的最大风险**：加载 27B-FP8 权重时 host 端峰值 ≈ 27GB，与系统/工具进程共存几乎必爆。两条出路：(1) Week 1 内升级到 ≥64GB DDR5，(2) 全程用 mmap + 分片加载，并把 benchmark 主力换成 7B 以下小模型。
 
 ---
 
@@ -39,11 +43,13 @@ mindmap
 | 层 | 技术 |
 |---|---|
 | 语言 | Python 3.12 |
-| DL 框架 | PyTorch 2.5+ |
-| Kernel | Triton 3.0 + flash-attn 4.0 |
+| DL 框架 | PyTorch 2.6+ |
+| Kernel | Triton 3.2+ + flash-attn 4 (cu13 wheel) |
 | HTTP | FastAPI + uvicorn |
 | Tokenizer | HuggingFace transformers (仅 tokenizer) |
 | Model | 自己写 forward（不用 transformers 的） |
+| 验证模型 | Qwen2.5-1.5B / Qwen3-0.6B（host RAM 友好） |
+| Benchmark 主力 | Qwen3.6-27B-FP8（如 RAM 允许） |
 
 ---
 
@@ -439,7 +445,7 @@ from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 
 app = FastAPI()
-engine = AsyncLLMEngine(EngineConfig(model_path="Qwen/Qwen3-4B"))
+engine = AsyncLLMEngine(EngineConfig(model_path="/home/xuefeiz2/models/Qwen2.5-1.5B"))
 
 @app.post("/v1/chat/completions")
 async def chat_completions(req: ChatCompletionRequest):
@@ -466,15 +472,15 @@ gantt
     title Mini-vLLM 5 天开发节奏
     dateFormat YYYY-MM-DD
     section Day22
-    项目骨架 + Tokenizer + Model loader  :2026-05-23, 1d
+    项目骨架 + Tokenizer + Model loader  :2026-05-28, 1d
     section Day23
-    KVCacheManager + Paged Attn kernel   :2026-05-24, 1d
+    KVCacheManager + Paged Attn kernel   :2026-05-29, 1d
     section Day24
-    Scheduler + LLMEngine 主循环          :2026-05-25, 1d
+    Scheduler + LLMEngine 主循环          :2026-05-30, 1d
     section Day25
-    MLA backend + FA 接入 + DeepSeek 测试 :2026-05-26, 1d
+    MLA backend + FA 接入 + DeepSeek 测试 :2026-05-31, 1d
     section Day26
-    HTTP server + Benchmark + README     :2026-05-27, 1d
+    HTTP server + Benchmark + README     :2026-06-01, 1d
 ```
 
 ---
@@ -494,26 +500,26 @@ gantt
 
 ## 八、Benchmark 设计
 
-**对比对象**：vLLM v0.20 同模型同硬件
+**对比对象**：vLLM v0.20.1 同模型同硬件（PRO 6000 Blackwell 96GB）
 
 **测试矩阵：**
 
 | 模型 | Batch | Seq Len | 测试指标 |
 |---|---|---|---|
-| Qwen3-4B | 1, 8, 32 | 1K in / 256 out | TTFT, TPOT, throughput |
-| Qwen3-8B-FP8 | 1, 16 | 4K in / 512 out | 同上 |
-| DeepSeek-V3-Distill-Qwen-7B (MLA) | 1, 8 | 2K in / 256 out | 同上 |
+| Qwen2.5-1.5B | 1, 8, 32 | 1K in / 256 out | TTFT, TPOT, throughput |
+| Qwen3.6-27B-FP8 | 1, 4 | 4K in / 512 out | 同上（RAM 允许时）|
+| DeepSeek 蒸馏 7B (MLA) | 1, 8 | 2K in / 256 out | 同上（如做 MLA 路线） |
 
-**目标**：mini-vllm 达到 vLLM **30-50%** 性能就是巨大成功（不要追求 100%）。
+**目标**：mini-vllm 达到 vLLM v0.20.1 **30-50%** 性能就是巨大成功（不要追求 100%）。
 
-**README 里展示：**
+**README 里展示（实测数字，禁止编造）：**
 ```
-Qwen3-4B, batch=8, 1K in / 256 out, RTX PRO 5000 Blackwell
+Qwen2.5-1.5B, batch=8, 1K in / 256 out, RTX PRO 6000 Blackwell 96GB
 
-           Mini-vLLM    vLLM v0.20    Ratio
-TTFT       180 ms       95 ms          53%
-TPOT       18 ms        9 ms           50%
-Throughput 850 tok/s    1750 tok/s     49%
+           Mini-vLLM    vLLM v0.20.1   Ratio
+TTFT       ?            ?              ?
+TPOT       ?            ?              ?
+Throughput ?            ?              ?
 ```
 
 ---
@@ -566,11 +572,11 @@ flowchart TD
 
 | 项目 | 用途 |
 |---|---|
-| [vLLM](https://github.com/vllm-project/vllm) | 抄架构 |
+| [vLLM v0.20.1](https://github.com/vllm-project/vllm) | 抄架构（含 `vllm/v1/`、`qwen3_5.py`、`qwen3_5_mtp.py`）|
 | [LightLLM](https://github.com/ModelTC/lightllm) | 参考更轻量实现 |
 | [SGLang](https://github.com/sgl-project/sglang) | 参考 RadixAttention |
 | [llm.c](https://github.com/karpathy/llm.c) | 极简 inference 灵感 |
-| [pi-llm](https://github.com/pi-llm/pi-llm) | 教学版 |
+| [llama2.c](https://github.com/karpathy/llama2.c) | 单文件 inference |
 
 ---
 

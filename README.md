@@ -4,9 +4,9 @@
 >
 > **方法**：30 天 × 8h/天 = **240 小时实打实训练**，输出 **3 个 GitHub portfolio 项目 + 4 篇技术博客 + 1 个 vLLM PR**。
 >
-> **当前日期**：2026 年 4 月底
+> **当前日期**：2026 年 5 月初（Day 1 = 2026-05-07）
 >
-> **规划版本**：v2.0（基于 vLLM v0.20、DeepSeek V4、Qwen3.6、Blackwell SM10.0 等 2026 年最新生态）
+> **规划版本**：v2.1（基于 vLLM v0.20.1、DeepSeek V4、Qwen3.6、Blackwell SM10.0；本地 PRO 6000 96GB 单卡主线）
 
 ---
 
@@ -15,7 +15,7 @@
 | 文件 | 内容 |
 |---|---|
 | [README.md](./README.md) | 总览（本文件） |
-| [01-hardware.md](./01-hardware.md) | 硬件方案（PRO 5000 vs PRO 6000 双方案）+ 采购清单 |
+| [01-hardware.md](./01-hardware.md) | 硬件落地记录（PRO 6000 Blackwell 96GB 实装）+ Ubuntu 24.04 + CUDA 13.2 验证 |
 | [02-week1.md](./02-week1.md) | Week 1 Day-by-Day：CUDA 基础 + LLM 推理原理 |
 | [03-week2.md](./03-week2.md) | Week 2 Day-by-Day：vLLM v0.20 源码 + MLA + FA4 |
 | [04-week3.md](./04-week3.md) | Week 3 Day-by-Day：Kernel + 量化 + P-EAGLE |
@@ -54,7 +54,7 @@ gantt
     axisFormat %m/%d
 
     section Week 1 基础
-    硬件采购+云GPU启动     :a1, 2026-05-02, 2d
+    本地环境校准+vLLM跑通  :a1, 2026-05-07, 1d
     CUDA基础+GEMM        :a2, after a1, 3d
     FlashAttention原理    :a3, after a2, 1d
     LLM推理原理+PagedAttn :a4, after a3, 2d
@@ -88,7 +88,7 @@ gantt
 graph TD
     W1["Week 1 完成<br/>━━━━━━━━━━<br/>能写 GEMM CUDA kernel<br/>能算 LLM 显存/延迟公式<br/>跑通 vLLM hello world<br/>📝 博客1: LLM 推理原理"]
 
-    W2["Week 2 完成<br/>━━━━━━━━━━<br/>读懂 vLLM Model Runner V2<br/>本地跑通 Qwen3-32B FP8<br/>提交 1 个 vLLM PR<br/>📝 博客2: vLLM 架构解析"]
+    W2["Week 2 完成<br/>━━━━━━━━━━<br/>读懂 vLLM Model Runner V2<br/>本地跑通 Qwen3.6-27B-FP8<br/>提交 1 个 vLLM PR<br/>📝 博客2: vLLM 架构解析"]
 
     W3["Week 3 完成<br/>━━━━━━━━━━<br/>手写 Triton fused kernel<br/>NVFP4 量化 27B 模型<br/>P-EAGLE 跑通<br/>📝 博客3: Blackwell FP4 实战"]
 
@@ -135,19 +135,25 @@ mindmap
 
 ## 硬件方案（详见 [01-hardware.md](./01-hardware.md)）
 
-| 方案 | GPU | 总成本 | 适用 |
-|---|---|---|---|
-| **A 性价比** | RTX PRO 5000 Blackwell 48GB | ~¥48,000 | 30 天计划 95% 够用，本地 Coding Agent 严格优化下可用 |
-| **B 全能型** | RTX PRO 6000 Blackwell 96GB | ~¥78,000 | 30 天计划 100% 够用，本地 Coding Agent 极致体验，未来 2 年游刃 |
+**已落地（2026-05-06）**：
 
-**两方案共同点**：均为 SM 10.0 数据中心架构，与公司 H100/B100/B200 100% 指令集兼容，简历卖点完全一致。
+| 部件 | 型号 | 备注 |
+|---|---|---|
+| GPU | NVIDIA RTX PRO 6000 Blackwell 96GB | SM 10.0 / 1792 GB/s / 600W |
+| CPU | Intel Core Ultra 9 285K | |
+| 主板 | MSI PRO B860-P WIFI | |
+| 内存 | DDR5 ~30GB | ⚠️ 偏紧，建议 Week 1 内升级到 64GB+ |
+| 系统 | Ubuntu 24.04 LTS | Driver 595.58.03 + CUDA 13.2 |
+| 备用 | Mac mini M4 | 端侧 MLX 实验 |
+
+**与公司硬件对齐**：PRO 6000 = SM 10.0 数据中心架构，与 H100/B100/B200 100% 指令集兼容，简历卖点完全一致。
 
 ---
 
 ## 信息时效性约定
 
-- ⚠️ **当前是 2026 年 4 月**，AI 推理领域月度迭代
-- ✅ 计划基于 **vLLM v0.20.0**（2026-04-27 发布）+ DeepSeek V4 + Qwen3.6 时代
+- ⚠️ **当前是 2026 年 5 月初**，AI 推理领域月度迭代
+- ✅ 计划基于 **vLLM v0.20.1**（2026-05-04 发布）+ DeepSeek V4 + Qwen3.6 时代
 - 🔄 **每周开始前**用 WebFetch 刷新 vLLM blog + arxiv，确保不学过时内容
 - ❓ 任何"新概念"（如某天看到 "FA5"、"DSv5"），立刻向我确认是否影响计划
 
@@ -155,13 +161,14 @@ mindmap
 
 ## 立即行动
 
-**今天：**
-- [ ] 阅读 [01-hardware.md](./01-hardware.md) 锁定硬件方案
-- [ ] 注册 AutoDL 充值 ¥500
-- [ ] 京东下单电源 + 散热 + 机箱 + SSD（约 ¥6,300，无论选哪张 GPU 都用得上）
-- [ ] 联系丽台旗舰店客服确认 PRO 5000 / 6000 现货与价格
+**今天（Day 0，2026-05-06）：**
+- [ ] 等 `Qwen/Qwen3.6-27B` 下载完成（确认 `model.safetensors.index.json` 落盘）
+- [ ] 拉取 FP8 主力模型：`modelscope download --model Qwen/Qwen3.6-27B-FP8 --local_dir ~/models/Qwen3.6-27B-FP8`
+- [ ] 创建 venv 并安装 vLLM v0.20.1：`uv venv --python 3.12 && source .venv/bin/activate && uv pip install "vllm==0.20.1"`
+- [ ] 安装 Nsight Systems：`sudo apt install nsight-systems`
+- [ ] 下单 DDR5 内存条扩容到 ≥64GB（Week 4 mini-vLLM 关键依赖）
 
-**明天（Day 1）：** 开始 [02-week1.md](./02-week1.md) 的 Day 1 任务
+**明天（Day 1，2026-05-07）：** 开始 [02-week1.md](./02-week1.md) 的 Day 1 任务
 
 ---
 

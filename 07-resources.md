@@ -21,7 +21,7 @@
 | 🔴 | FlashAttention v1 (Dao 2022) | [arxiv 2205.14135](https://arxiv.org/abs/2205.14135) | IO-aware attention 开山 |
 | 🔴 | FlashAttention v2 (Dao 2023) | [arxiv 2307.08691](https://arxiv.org/abs/2307.08691) | warp 并行优化 |
 | 🟡 | FlashAttention v3 (Shah 2024) | [arxiv 2407.08608](https://arxiv.org/abs/2407.08608) | Hopper TMA + wgmma |
-| 🔴 | **FlashAttention v4 (2025)** | [tridao blog](https://tridao.me/blog/2025/flash4/) | Blackwell 专属 ⭐ |
+| 🔴 | **FlashAttention v4 (2025)** | [tridao blog](https://tridao.me/blog/2025/flash4/) + [Dao-AILab/flash-attention](https://github.com/Dao-AILab/flash-attention) | Blackwell 专属。安装：`uv pip install "flash-attn-4[cu13]"` |
 | 🟡 | Online softmax (Milakov 2018) | [arxiv 1805.02867](https://arxiv.org/abs/1805.02867) | FA 的数学根 |
 
 ### Week 2：vLLM + 系统
@@ -58,8 +58,8 @@
 |---|---|---|---|
 | 🟡 | Mamba (Gu 2023) | [arxiv 2312.00752](https://arxiv.org/abs/2312.00752) | SSM 新秀 |
 | 🟡 | Nemotron-H (NVIDIA 2025) | 查 NV 官博 | Hybrid SSM 落地 |
+| 🟡 | **Qwen3.6 模型卡 + 配置** | [HuggingFace Qwen](https://huggingface.co/Qwen) / [ModelScope Qwen](https://modelscope.cn/organization/Qwen) | 你部署的 27B-FP8 / VL 27B 都在这；带 hybrid linear attention + MTP |
 | 🟢 | Llama 4 技术报告 | Meta 官网 | 业界对比 |
-| 🟢 | Qwen3 技术报告 | 阿里官网 | 你部署的就是它 |
 
 ---
 
@@ -69,7 +69,8 @@
 
 | 优先级 | 资源 | 价值 |
 |---|---|---|
-| 🔴 | [Anatomy of vLLM (官方 2025)](https://blog.vllm.ai/2025/09/05/anatomy-of-vllm.html) | vLLM 源码导读，**整个 Week 2 围绕它** |
+| 🔴 | [Anatomy of vLLM (官方 2025-09-05)](https://blog.vllm.ai/2025/09/05/anatomy-of-vllm.html) | vLLM 源码导读，**整个 Week 2 围绕它** |
+| 🔴 | [vLLM blog 主页（每周看新文）](https://blog.vllm.ai) | DeepSeek V4 / FP8 KV-Cache / Model Runner V2 / P-EAGLE 等深度文 |
 | 🔴 | [Lilian Weng - LLM Inference Optimization](https://lilianweng.github.io/posts/2023-01-10-inference-optimization/) | 综述教科书 |
 | 🔴 | [Anyscale Continuous Batching](https://www.anyscale.com/blog/continuous-batching-llm-inference) | 调度入门 |
 | 🟡 | [Aleksa Gordić LLM 推理 series](https://www.aleksagordic.com) | 现代化解释 |
@@ -90,8 +91,9 @@
 
 | 优先级 | 资源 | 价值 |
 |---|---|---|
-| 🔴 | [vLLM 官方 docs](https://docs.vllm.ai) | 全面 |
-| 🔴 | [vLLM blog](https://blog.vllm.ai) | release + 深度 |
+| 🔴 | [vLLM 官方 docs](https://docs.vllm.ai) | 全面（当前以 v0.20.1 为准） |
+| 🔴 | [vLLM blog](https://blog.vllm.ai) | release + 深度（Anatomy / DeepSeek V4 / FP8 KV-Cache / MRV2 / P-EAGLE 必看）|
+| 🔴 | [vLLM GitHub releases](https://github.com/vllm-project/vllm/releases) | 看 v0.20.x 每个 minor 的新特性 |
 | 🟡 | [SGLang docs](https://docs.sglang.ai) | 备选引擎 |
 | 🟡 | [TensorRT-LLM docs](https://nvidia.github.io/TensorRT-LLM/) | 工业部署 |
 | 🟢 | [LMSYS blog](https://lmsys.org/blog/) | SGLang 团队 |
@@ -137,7 +139,6 @@
 |---|---|
 | 🟢 [karpathy/llama2.c](https://github.com/karpathy/llama2.c) | 单文件 inference |
 | 🟢 [karpathy/nanoGPT](https://github.com/karpathy/nanoGPT) | 基础 |
-| 🟢 [pi-llm/pi-llm](https://github.com/pi-llm/pi-llm) | 教学版 vLLM |
 
 ---
 

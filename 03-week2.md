@@ -3,6 +3,8 @@
 > **目标**：从"会用 vLLM"到"能改 vLLM 源码 + 提交 1 个 PR + 部署 DeepSeek V4 / Qwen3.6"。
 >
 > **Week 2 是整个 30 天计划的核心**——读懂 vLLM 是国内大模型推理岗的硬门槛。
+>
+> **环境**：本地 PRO 6000 96GB + vLLM v0.20.1 (Day 1 已装)。
 
 ---
 
@@ -21,14 +23,14 @@ graph LR
 ```
 
 **Week 2 最终交付：**
-- ✅ 一份 vLLM v0.20 架构笔记（10K 字，含调用栈图）
+- ✅ 一份 vLLM v0.20.1 架构笔记（10K 字，含调用栈图）
 - ✅ 1 个 vLLM PR（哪怕是文档/小 bug fix 也行，目的是熟悉流程）
-- ✅ DeepSeek V4 / Qwen3.6 27B 在本地跑通
+- ✅ DeepSeek V4 蒸馏版 / Qwen3.6-27B-FP8 在本地跑通
 - ✅ 博客 2：《vLLM v0.20 Model Runner V2 源码解析》
 
 ---
 
-## Day 8：Anatomy of vLLM 精读 + 架构总览（5月9日）
+## Day 8：Anatomy of vLLM 精读 + 架构总览（2026-05-14，周四）
 
 ### 上午（4h）：精读官方长文
 
@@ -58,8 +60,8 @@ graph TD
 
 ```bash
 git clone https://github.com/vllm-project/vllm
-cd vllm && git checkout v0.20.0
-pip install -e .  # editable install
+cd vllm && git checkout v0.20.1
+uv pip install -e .  # editable install（用 Day 1 的 venv）
 ```
 
 **必读文件（按顺序）：**
@@ -74,6 +76,8 @@ pip install -e .  # editable install
 | `vllm/v1/worker/gpu_model_runner.py` | ~2000 | **Model Runner V2 核心** |
 | `vllm/v1/attention/backends/flash_attn.py` | ~800 | FA backend |
 | `vllm/v1/attention/backends/mla/` | - | MLA backend (DeepSeek) |
+| `vllm/model_executor/models/qwen3_5.py` | - | **你部署的 27B-FP8 走这个** |
+| `vllm/model_executor/models/qwen3_5_mtp.py` | - | Qwen3.6 MTP head |
 
 ### 晚上（1h）：建立调用栈
 画出完整调用链：用户请求 → response 的每一层调用，画在 Excalidraw 上
@@ -85,7 +89,7 @@ pip install -e .  # editable install
 
 ---
 
-## Day 9：Engine + Scheduler 源码（5月10日）
+## Day 9：Engine + Scheduler 源码（2026-05-15，周五）
 
 ### 上午（4h）：AsyncLLMEngine 主循环
 
@@ -142,7 +146,7 @@ flowchart TD
 
 ---
 
-## Day 10：Model Runner V2 深读（5月11日）
+## Day 10：Model Runner V2 深读（2026-05-16，周六）
 
 > **MRV2 是 2026 年 vLLM 的新核心**，旧的 ModelRunner 已废弃
 
@@ -181,7 +185,7 @@ graph TD
 
 **实操：**
 ```bash
-VLLM_LOGGING_LEVEL=DEBUG vllm serve Qwen/Qwen3-8B-FP8
+VLLM_LOGGING_LEVEL=DEBUG vllm serve ~/models/Qwen3.6-27B-FP8 --max-model-len 32768
 # 看启动日志里的 "Capturing CUDA graph for shape ..."
 ```
 
@@ -200,7 +204,7 @@ print(f"step {step_idx}: prefill={n_prefill}, decode={n_decode}")
 
 ---
 
-## Day 11：PagedAttention + KV Cache Manager（5月12日）
+## Day 11：PagedAttention + KV Cache Manager（2026-05-17，周日）
 
 ### 上午（4h）：PagedAttention 论文 + 源码
 
@@ -227,16 +231,16 @@ graph LR
     style P3 fill:#d4edda
 ```
 
-### 下午（4h）：Prefix Caching 实战
+### 下午（4h）：Prefix Caching 实战（Coding Agent 杀手锏）
 
 **为什么 Prefix Caching 是 Coding Agent 杀手锏：**
 - Agent 每次请求 system prompt + tool定义都一样（5K-20K token）
 - 命中 prefix cache，TTFT 从 1.5s 降到 100ms
 - 算力节省 90%+
 
-**vLLM v0.20 启用：**
+**vLLM v0.20.1 启用：**
 ```bash
-vllm serve Qwen/Qwen3-32B-FP8 \
+vllm serve ~/models/Qwen3.6-27B-FP8 \
   --enable-prefix-caching \
   --prefix-caching-hash-algo builtin  # 或 sha256
 ```
@@ -255,7 +259,7 @@ vllm serve Qwen/Qwen3-32B-FP8 \
 
 ---
 
-## Day 12：MLA + FlashAttention 4 实战（5月13日）
+## Day 12：MLA + FlashAttention 4 实战（2026-05-18，周一）
 
 ### 上午（4h）：MLA (Multi-head Latent Attention) 原理
 
@@ -286,18 +290,20 @@ graph LR
     style L1 fill:#d4edda
 ```
 
-### 下午（4h）：vLLM 跑 DeepSeek V3/V4
+### 下午（4h）：vLLM 跑 DeepSeek + 安装 FA4
 
 ```bash
-# DeepSeek V3 (671B MoE)，PRO 5000/6000 单卡跑不动
-# 但可以跑蒸馏版 DeepSeek-V3-Distill-Qwen-32B
+# 安装 FA4（Blackwell 专属，CUDA 13 wheel）
+uv pip install "flash-attn-4[cu13]"
+
+# DeepSeek V3 671B MoE 单卡跑不动，跑蒸馏版
 vllm serve deepseek-ai/DeepSeek-V3-Distill-Qwen-32B \
   --max-model-len 32768 \
   --gpu-memory-utilization 0.92
 
-# Qwen3.6 27B (用 FA4 backend)
+# Qwen3.6-27B-FP8 + FA4 backend
 VLLM_ATTENTION_BACKEND=FLASH_ATTN_V4 \
-vllm serve Qwen/Qwen3.6-27B \
+vllm serve ~/models/Qwen3.6-27B-FP8 \
   --max-model-len 65536
 ```
 
@@ -316,7 +322,7 @@ vllm serve Qwen/Qwen3.6-27B \
 
 ---
 
-## Day 13：Disaggregated Serving (P/D 分离)（5月14日）
+## Day 13：Disaggregated Serving (P/D 分离)（2026-05-19，周二）
 
 ### 上午（4h）：P/D 分离原理
 
@@ -341,17 +347,21 @@ graph LR
 - 📄 [Mooncake 论文](https://arxiv.org/abs/2407.00079) - Moonshot 实践
 - 📝 [vLLM Disaggregated Prefilling 文档](https://docs.vllm.ai/en/latest/features/disagg_prefill.html)
 
-### 下午（4h）：本地模拟 P/D（用 2 个进程）
+### 下午（4h）：本地模拟 P/D（单卡 2 进程）
+
+> ⚠️ 单卡 PRO 6000 没法真正模拟 P/D 增益，但可以跑通 KV transfer 流程，验证理解。
 
 ```bash
-# 终端 1：Prefill server
-vllm serve Qwen/Qwen3-8B-FP8 \
-  --port 8001 \
+# 终端 1：Prefill server（跑较小模型避免显存冲突）
+CUDA_VISIBLE_DEVICES=0 \
+vllm serve ~/models/Qwen3.6-27B-FP8 \
+  --port 8001 --max-model-len 16384 --gpu-memory-utilization 0.4 \
   --kv-transfer-config '{"kv_role":"producer", "kv_buffer_size":5e9}'
 
 # 终端 2：Decode server
-vllm serve Qwen/Qwen3-8B-FP8 \
-  --port 8002 \
+CUDA_VISIBLE_DEVICES=0 \
+vllm serve ~/models/Qwen3.6-27B-FP8 \
+  --port 8002 --max-model-len 16384 --gpu-memory-utilization 0.4 \
   --kv-transfer-config '{"kv_role":"consumer", "kv_buffer_size":5e9}'
 
 # 终端 3：Proxy
@@ -368,7 +378,7 @@ python examples/online_serving/disaggregated_prefill_proxy.py
 
 ---
 
-## Day 14：博客 2 + 提交 vLLM PR（5月15日）
+## Day 14：博客 2 + 提交 vLLM PR（2026-05-20，周三）
 
 ### 上午（4h）：找一个能改的 vLLM issue
 
@@ -414,17 +424,18 @@ git commit -s -m "fix: blah"
 3. MRV2 一次 step 的完整流程图（自绘）
 4. PagedAttention 在 v0.20 的新优化（hash-based prefix cache）
 5. MLA backend 怎么接入（DeepSeek V4 实战）
-6. FA4 在 Blackwell 上的性能数字（自测）
+6. FA4 在 Blackwell PRO 6000 上的性能数字（自测，附 nsys 截图）
 7. 我提交的第一个 PR（链接 + 心得）
 
 ### 晚上（1h）：Week 3 准备
-- 安装 Triton：`pip install triton`
+- 安装 Triton：已在 Day 1 装好
 - 浏览 [Triton tutorials](https://triton-lang.org/main/getting-started/tutorials/index.html)
+- 准备 Day 17 NVFP4 量化：`uv pip install llmcompressor`
 
 ### Checkpoint
 - [ ] vLLM PR 提交（哪怕未 merged，链接放简历）
 - [ ] 博客 2 发布
-- [ ] DeepSeek 蒸馏版 + Qwen3.6 + Llama 4 任意 2 个跑通
+- [ ] DeepSeek 蒸馏版 + Qwen3.6-27B-FP8 + Llama 4 任意 2 个跑通
 
 ---
 
@@ -433,9 +444,10 @@ git commit -s -m "fix: blah"
 | 风险 | 兜底 |
 |---|---|
 | 源码读不进去 | 强制只读 5 个核心文件，其他跳过 |
-| MLA / DeepSeek 跑不起来 | 改跑 Qwen3.6 GQA 版（更简单） |
-| PR 找不到 | 写一个新文档（如 "vLLM on PRO 6000 部署指南"）也算 |
+| MLA / DeepSeek 跑不起来 | 改跑 Qwen3.6-27B-FP8（更简单） |
+| PR 找不到 | 写一个新文档（如 "vLLM on PRO 6000 Blackwell 部署指南"）也算 |
 | FA4 编译失败 | 退回 FA3，但博客里说明原因 |
+| Blackwell SM10.0 在某些 backend 报 unsupported | 换 backend 重试，把过程写进博客 |
 
 ---
 
