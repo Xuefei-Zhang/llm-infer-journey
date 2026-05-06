@@ -45,7 +45,7 @@ graph LR
 
 ```mermaid
 graph TD
-    P6[PRO 6000 Blackwell 96GB<br/>1792 GB/s · SM10.0 · 600W]
+    P6[PRO 6000 Blackwell Workstation 96GB<br/>1792 GB/s · sm_120 · 600W]
 
     P6 --> Plan1[甜点配置<br/>Qwen3.6-27B-FP8]
     Plan1 --> P1A[模型 ~27 GB<br/>剩余 ~65 GB 给 KV + activation]
@@ -58,7 +58,7 @@ graph TD
     P2A --> P2B[Coding Agent 主线不用，仅供研究]
 
     P6 --> Plan3[激进配置<br/>NVFP4 量化版 (Day 17 自产)]
-    Plan3 --> P3A[~14 GB 权重 → 80GB 给 KV<br/>但需自验 Blackwell SM10.0 兼容性]
+    Plan3 --> P3A[~14 GB 权重 → 80GB 给 KV<br/>但需自验 Blackwell sm_120 NVFP4 兼容性<br/>sm_120 走 mma.sync.block_scale，非 sm_100 tcgen05]
 
     style Plan1 fill:#d4edda
 ```

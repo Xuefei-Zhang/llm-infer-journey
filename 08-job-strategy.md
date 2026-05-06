@@ -60,7 +60,7 @@ graph TD
 ├─────────────────────────────────────────────┤
 │ 【核心技能】                                  │
 │  - LLM 推理：vLLM v0.20.1, SGLang, MLA, FA4 │
-│  - GPU 编程：CUDA 13, Triton, Blackwell SM10│
+│  - GPU 编程：CUDA 13, Triton, Blackwell sm_120│
 │  - 量化：FP8, NVFP4, Marlin, TurboQuant     │
 │  - 系统：Linux, FreeRTOS, ARM, x86, PCIe    │
 ├─────────────────────────────────────────────┤
@@ -107,10 +107,10 @@ graph TD
 ### 2.3 自我描述的 3 个版本
 
 **版本 A（求职简历用）：**
-> 7 年 Intel ISP/IPU 系统软件工程师，深度参与 IPU6 至 IPU8 在 Windows / Linux / FreeRTOS 全栈研发，精通 SoC 异构计算、驱动 / 固件 / 调度。2026 年聚焦 LLM 推理优化，在 NVIDIA Blackwell SM10.0 平台完成 vLLM 源码贡献、NVFP4 量化部署、自研 PagedAttention + MLA 推理引擎（mini-vllm）。
+> 7 年 Intel ISP/IPU 系统软件工程师，深度参与 IPU6 至 IPU8 在 Windows / Linux / FreeRTOS 全栈研发，精通 SoC 异构计算、驱动 / 固件 / 调度。2026 年聚焦 LLM 推理优化，在 NVIDIA Blackwell 家族（sm_120 RTX PRO 6000 Workstation）完成 vLLM 源码贡献、NVFP4 量化部署、自研 PagedAttention + MLA 推理引擎（mini-vllm）；熟悉 sm_120 与 sm_100 (B100/B200) 架构差异及生产代码迁移路径（baseline PTX 兼容、tcgen05 等 sm_100-only 优化需重新实现）。
 
 **版本 B（猎头联系用，更短）：**
-> Ex-Intel 7 年系统软件 → LLM 推理工程师转型。vLLM contributor，Blackwell SM10.0 实战，自研 mini-vllm 推理引擎。
+> Ex-Intel 7 年系统软件 → LLM 推理工程师转型。vLLM contributor，Blackwell sm_120 (PRO 6000 Workstation) 实战，熟悉 sm_120 ↔ sm_100 移植路径，自研 mini-vllm 推理引擎。
 
 **版本 C（LinkedIn headline）：**
 > LLM Inference Engineer | ex-Intel ISP | vLLM Contributor | Blackwell GPU Specialist
@@ -121,7 +121,7 @@ graph TD
 > "用 vLLM 部署了 Qwen3 模型"
 
 **✅ 对的写法（量化 + 上下文 + 决策）：**
-> "在 RTX PRO 6000 Blackwell (SM10.0, 96GB) 上部署 Qwen3.6-27B-FP8（hybrid 16 full-attn + 48 linear-attn 共 64 层）：
+> "在 RTX PRO 6000 Blackwell Workstation (sm_120, 96GB) 上部署 Qwen3.6-27B-FP8（hybrid 16 full-attn + 48 linear-attn 共 64 层）：
 > - baseline 用 Qwen 官方 FP8 权重；同时用 LLM Compressor 自产 NVFP4 版做对照
 > - 启用 FlashAttention v4 + Prefix Caching + FP8 KV cache
 > - 实现 256K context 单卡推理，Decode XX tps（实测，vs FP16 KV baseline）
@@ -222,7 +222,7 @@ graph LR
 26. **Triton vs CUDA** 的取舍？什么场景用 Triton 更合适？
 27. **Roofline 模型** 怎么用？给一个 kernel，你怎么判断它是 compute-bound 还是 memory-bound？
 28. **Nsight Compute / Nsight Systems** 怎么用？关键 metric 有哪些？
-29. **Blackwell SM 10.0 vs Hopper SM 9.0** 主要差异（wgmma 升级、TMA、CGA、NVFP4）？
+29. **Blackwell vs Hopper (sm_90)** 主要差异（FP4/FP6 Tensor Core、TMA 增强、Cluster 升级、NVFP4 微缩放）；**Blackwell sm_100 (B100/B200) vs sm_120 (PRO 6000 Workstation / RTX 5090)** 主要差异（tcgen05 + TMEM 仅 sm_100；5 代 NVLink、INT4 TC、228KB shared mem 仅 sm_100；sm_120 走 mma.sync + WGMMA；二进制 cubin 不互通，baseline PTX 向前兼容 sm_100 → sm_120）？
 30. **PCIe / NVLink** 带宽数字？TP-8 时为什么需要 NVLink？
 
 ### 4.3 系统设计高频题

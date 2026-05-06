@@ -12,7 +12,7 @@
 
 | 部件 | 型号 | 备注 |
 |---|---|---|
-| **GPU** | NVIDIA RTX PRO 6000 Blackwell 96GB | SM 10.0 / 1792 GB/s / 600W TDP / GDDR7 ECC |
+| **GPU** | NVIDIA RTX PRO 6000 Blackwell Workstation Edition 96GB | SM 12.0 / 1792 GB/s / 600W TDP / GDDR7 ECC |
 | CPU | Intel Core Ultra 9 285K | 24 核 8P+16E |
 | 主板 | MSI PRO B860-P WIFI | PCIe 5.0 x16 |
 | 内存 | DDR5 ~30GB（待升级到 ≥64GB） | ⚠️ Week 4 mini-vLLM 需要 |
@@ -29,9 +29,9 @@
 ### 2.1 GPU 识别 & PCIe 链路
 
 ```bash
-# 确认 SM 10.0
+# 确认 SM 12.0
 nvidia-smi --query-gpu=name,compute_cap,memory.total --format=csv
-# 期望: NVIDIA RTX PRO 6000 Blackwell, 10.0, 98304 MiB
+# 期望: NVIDIA RTX PRO 6000 Blackwell Workstation Edition, 12.0, 98304 MiB
 
 # 确认 PCIe 5.0 x16 满速
 nvidia-smi --query-gpu=pcie.link.gen.current,pcie.link.width.current --format=csv
@@ -48,7 +48,7 @@ sudo lspci -vvv | grep -A 20 "NVIDIA"
 nvcc -V                    # CUDA 13.2
 nvidia-smi                 # Driver 595.58.03
 python -c "import torch; print(torch.cuda.is_available(), torch.cuda.get_device_capability())"
-# 期望: True, (10, 0)
+# 期望: True, (12, 0)
 ```
 
 ### 2.3 Blackwell 关键特性可用性
@@ -64,7 +64,14 @@ python -c "import torch; print(torch.cuda.is_available(), torch.cuda.get_device_
 - ✅ CGA（Cluster Programming Model）
 - ✅ DSMEM（Distributed Shared Memory）
 
-> ⚠️ **vLLM Blackwell 量化支持**：vLLM 文档 quantization 矩阵当前列到 Hopper 为止，Blackwell 列尚未独立标注。FP8 W8A8 / NVFP4 实际能否在 PRO 6000 上跑、性能如何 → **Week 3 Day 17-18 自验**。
+> ⚠️ **vLLM Blackwell 量化支持**：vLLM 文档 quantization 矩阵当前列到 Hopper 为止，Blackwell 列尚未独立标注。FP8 W8A8 / NVFP4 实际能否在 PRO 6000 (sm_120) 上跑、性能如何 → **Week 3 Day 17-18 自验**。
+>
+> ⚠️ **sm_120 vs sm_100 关键差异**（NVIDIA 官方）：PRO 6000 Workstation 是 sm_120，与数据中心 B100/B200/GB200 的 sm_100 **同 Blackwell 家族但不同 SM 主版本**：
+> - **sm_100 独占**：tcgen05（5 代异步 Tensor Core）+ TMEM（Tensor Memory）+ 5 代 NVLink + INT4 Tensor Core + 228KB shared mem/SM
+> - **sm_120 走**：mma.sync + WGMMA（Hopper 路径）+ 128KB shared mem/SM
+> - **共有**：TMA、Thread Block Cluster、DSMEM、FP4/FP6/FP8/BF16 数据类型
+> - **二进制**：cubin 不互通；baseline PTX (`compute_100`) 可 JIT 到 sm_120（向前兼容），反向不行
+> - **简历表述**：避免说"100% 指令集兼容"。说"同 Blackwell 家族，baseline PTX 可移植，tcgen05 等 sm_100-only 路径迁移需重写"。
 
 ---
 
@@ -117,14 +124,14 @@ KV (INT4, TurboQuant) per token = 8 KB
 ```mermaid
 graph TD
     Q{选哪张卡}
-    Q --> S1[RTX 5090<br/>SM 12.0 消费架构]
-    Q --> S3[RTX PRO 5000 Blackwell<br/>SM 10.0 / 48GB]
+    Q --> S1[RTX 5090<br/>SM 12.0 / 32GB 消费卡]
+    Q --> S3[RTX PRO 5000 Blackwell<br/>SM 12.0 / 48GB]
     Q --> S4[RTX 6000 Ada<br/>上代 SM 8.9]
     Q --> S5[二手 A100 / A6000]
     Q --> S6[DGX Spark / GB10]
     Q --> S7[4090 48GB 魔改]
 
-    S1 -.❌ 与公司 SM 10/9 集群指令集分歧.-> X[排除]
+    S1 -.❌ 32GB 显存不够 27B FP8 长 context.-> X[排除]
     S3 -.❌ 96GB → 48GB 后 27B+长context同时压力大.-> X
     S4 -.❌ 缺 FP4/MXFP4，简历差一代.-> X
     S5 -.❌ 缺 FP8/FP4，二手有锁卡风险.-> X
@@ -137,7 +144,7 @@ graph TD
     style X fill:#f8d7da
 ```
 
-**与公司集群兼容性**：PRO 6000 = SM 10.0 = B100/B200 同架构；写的 CUDA kernel `git clone` 到公司 H100/B100 集群 PTX 直接可跑，简历卖点 100% 一致。
+**与公司集群可移植性**：PRO 6000 (sm_120) 与公司预期的 H100 (sm_90) / B100/B200 (sm_100) **同家族但不同 SM**。在 PRO 6000 上写的 CUDA / Triton kernel 大部分走 baseline PTX (`compute_90` / `compute_100`) 路径,**重新编译即可在 H100/B100 集群跑**;但若用了 sm_120 独有指令(或 sm_100-only 的 tcgen05)需要重写。简历可以诚实说"在 sm_120 平台完成 vLLM / NVFP4 实战,熟悉 sm_100/sm_90 移植路径与编译目标"——这比"100% 兼容"硬气。
 
 ---
 

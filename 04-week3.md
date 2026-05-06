@@ -26,9 +26,9 @@ graph LR
 - ✅ 5 个 Triton fused kernel（GitHub）
 - ✅ Qwen3.6-27B 的 NVFP4 量化模型（HuggingFace 上传，自己产出 vs Qwen 官方 FP8）
 - ✅ P-EAGLE 投机解码 demo（吐字速度 2-3×）
-- ✅ 博客 3：《Blackwell SM 10.0 上的 NVFP4 量化与 FA4 实战》
+- ✅ 博客 3：《Blackwell sm_120 (PRO 6000 Workstation) 上的 NVFP4 量化与 FA4 实战 —— 兼论与 sm_100 (B100/B200) 的差异》
 
-> **Blackwell SM10.0 自验提示**：vLLM 官方量化兼容性表当前 (2026-05) 仅列到 Hopper。NVFP4 / FP8 / TurboQuant 在 Blackwell 上能否跑通需自行验证，每个 Day 末尾记录"实测可用 / 报错 / 兜底方案"到 `progress.md`。
+> **Blackwell sm_120 自验提示**：vLLM 官方量化兼容性表当前 (2026-05) 仅列到 Hopper。NVFP4 / FP8 / TurboQuant 在 Blackwell sm_120（PRO 6000 Workstation）上能否跑通需自行验证。注意 sm_120 **没有 tcgen05 / TMEM**，部分 NVFP4 优化路径（依赖 tcgen05.mma.block_scale）在 CUDA 13.0 cicc 中尚未为 sm_120 emit；CUDA 13.1+ 走 mma.sync.block_scale 路径。每个 Day 末尾记录"实测可用 / 报错 / 兜底方案"到 `progress.md`。
 
 ---
 
@@ -138,7 +138,7 @@ nsys profile --stats=true python my_kernel_bench.py
 
 > **NVFP4 是 Blackwell 的杀手锏**，简历里写"NVFP4 实战经验"是巨大加分项。
 >
-> ⚠️ Blackwell SM10.0 + NVFP4 + Qwen3.6 这条路 vLLM 官方文档尚未明确背书，**今天的核心任务是"探出能不能"**，而不是"刷到完美精度"。
+> ⚠️ Blackwell sm_120 + NVFP4 + Qwen3.6 这条路 vLLM 官方文档尚未明确背书，**今天的核心任务是"探出能不能"**，而不是"刷到完美精度"。注意 sm_120 上 NVFP4 走 mma.sync 路径（非 sm_100 的 tcgen05），CUDA 13.2 应已支持，但 cicc emit 状态需实测。
 
 ### 上午（4h）：量化基础理论
 
@@ -194,7 +194,7 @@ vllm serve /home/xuefeiz2/models/Qwen3.6-27B-NVFP4 \
   --max-model-len 65536
 ```
 
-> ⚠️ **若量化或加载失败**：检查 llmcompressor 是否支持 qwen3_5 hybrid 架构 + Blackwell SM10.0 NVFP4 emit。失败立即记录错误码，退回 Day 18 的 FP8 路线（仍是简历加分项）。
+> ⚠️ **若量化或加载失败**：检查 llmcompressor 是否支持 qwen3_5 hybrid 架构 + Blackwell sm_120 NVFP4 emit（注意 sm_120 走 mma.sync.block_scale，非 sm_100 tcgen05 路径）。失败立即记录错误码，退回 Day 18 的 FP8 路线（仍是简历加分项）。
 
 ### 晚上（1h）：精度评估
 ```bash
@@ -395,7 +395,7 @@ vllm bench latency --model /home/xuefeiz2/models/Qwen3.6-27B-FP8 \
 
 ### 下午（4h）：写博客 3
 
-**博客 3 题目：《Blackwell SM 10.0 实战：NVFP4 / FP8 + FA4 + MTP 让 Qwen3.6-27B 在单卡 96GB 上吃满 256K context》**
+**博客 3 题目：《Blackwell sm_120 实战：NVFP4 / FP8 + FA4 + MTP 让 Qwen3.6-27B 在单卡 PRO 6000 96GB 上吃满 256K context —— 顺带说清 sm_120 与 sm_100 的真实差异》**
 
 **大纲：**
 1. Blackwell 第 5 代 Tensor Core 与 NVFP4 / MXFP4
@@ -435,7 +435,7 @@ Qwen3.6-27B 优化前后 (PRO 6000 96GB, 单卡)
 | 风险 | 兜底 |
 |---|---|
 | Triton kernel 不收敛 / 数值不对 | 用 PyTorch 模拟先验证算法，再翻译 |
-| NVFP4 在 Blackwell SM10.0 报 unsupported | 退回官方 FP8（Day 1 已 baseline，简历依然加分） |
+| NVFP4 在 Blackwell sm_120 报 unsupported（sm_120 无 tcgen05） | 退回官方 FP8（Day 1 已 baseline，简历依然加分），博客里把"sm_120 没 tcgen05"作为差异化论点 |
 | TurboQuant v0.20.1 不稳定 / 选项不存在 | 用 FP8 KV 替代，效果接近 |
 | P-EAGLE 找不到 Qwen3.6 draft 模型 | 用 MTP（模型自带），或外挂任意 0.5-1B 小模型 |
 | 长 context 测试 OOM | 降 max-model-len 到 128K，hybrid 下显存极宽裕 |

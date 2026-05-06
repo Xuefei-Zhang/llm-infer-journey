@@ -26,10 +26,17 @@
 
 ### 风险
 - 系统内存只有 30GB：Week 4 mini-vLLM 测 27B 模型时若开 CPU KV offload 会 OOM；Week 1 之前最好补内存条
-- Blackwell SM10.0 在 vLLM quant 表里尚无独立列（最新表列到 Hopper），FP8 W8A8 / NVFP4 实际能否跑、性能多少 → Week 3 Day 17-18 自验
+- Blackwell sm_120 在 vLLM quant 表里尚无独立列（最新表列到 Hopper），FP8 W8A8 / NVFP4 实际能否跑、性能多少 → Week 3 Day 17-18 自验
 
 ### 心得
 - 五天硬件折腾完，正式开始。计划改回**本地单卡 96GB** 主线，所有云上/过渡内容删除。
+
+### 文档勘误（v2.1 → v2.1.1）
+- **错误**：v2.1 全篇把 PRO 6000 Workstation 写成 SM 10.0（24 处）。
+- **正确**：`nvidia-smi` 实测 `compute_cap=12.0`，NVIDIA 官方表确认 PRO 6000 Workstation = **sm_120**；sm_100 是 B100/B200/GB200（数据中心 Blackwell）。
+- **影响**：sm_120 与 sm_100 同 Blackwell 家族但**不同 SM 主版本**：sm_100 独占 tcgen05/TMEM/5 代 NVLink/INT4 TC/228KB shared mem；sm_120 走 mma.sync + WGMMA。二进制 cubin 不互通，baseline PTX `compute_100` 向前兼容到 sm_120。
+- **简历改动**：删除"100% 指令集兼容"；改为"sm_120 实战 + 熟悉 sm_100 移植路径"。
+- **修正**：COACH/README/01-09 共 24 处 SM10 → sm_120 + 4 处兼容性断言重写。
 
 ---
 

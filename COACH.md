@@ -26,7 +26,7 @@ gaps_to_close:
 goal: 30 天后拿到字节 AML / Moonshot / DeepSeek 类公司的 LLM 推理岗 offer
 hardware:
   - Intel Core Ultra 9 285K + MSI PRO B860-P WIFI + ~30GB DDR5
-  - GPU: NVIDIA RTX PRO 6000 Blackwell 96GB (SM 10.0, 1792 GB/s, 600W)
+  - GPU: NVIDIA RTX PRO 6000 Blackwell Workstation Edition 96GB (SM 12.0 / sm_120, 1792 GB/s, 600W)
   - 系统: Ubuntu 24.04 LTS + Driver 595.58.03 + CUDA 13.2
   - Mac mini M4（备用，端侧 MLX 实验）
 plan_root: 见 README.md（10 个文档构成完整 30 天计划）

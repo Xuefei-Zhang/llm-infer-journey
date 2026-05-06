@@ -348,7 +348,7 @@ A from-scratch LLM inference engine with PagedAttention, hybrid attention, and C
 - PagedAttention with block-level KV cache
 - Continuous batching + chunked prefill
 - (Optional) MLA backend for DeepSeek-family models
-- FlashAttention 4 backend (Blackwell SM 10.0)
+- FlashAttention 4 backend (Blackwell sm_120 / sm_100, WGMMA + TMA path)
 - FP8 / NVFP4 quantization support (via compressed-tensors)
 - OpenAI-compatible HTTP server
 

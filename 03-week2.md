@@ -447,7 +447,7 @@ git commit -s -m "fix: blah"
 | MLA / DeepSeek 跑不起来 | 改跑 Qwen3.6-27B-FP8（更简单） |
 | PR 找不到 | 写一个新文档（如 "vLLM on PRO 6000 Blackwell 部署指南"）也算 |
 | FA4 编译失败 | 退回 FA3，但博客里说明原因 |
-| Blackwell SM10.0 在某些 backend 报 unsupported | 换 backend 重试，把过程写进博客 |
+| Blackwell sm_120 在某些 backend 报 unsupported（特别是 sm_100-only 的 tcgen05 路径） | 换 backend 重试（多数走 WGMMA 的路径在 sm_120 都可用），把过程写进博客 |
 
 ---
 

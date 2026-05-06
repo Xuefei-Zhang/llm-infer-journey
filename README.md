@@ -6,7 +6,7 @@
 >
 > **当前日期**：2026 年 5 月初（Day 1 = 2026-05-07）
 >
-> **规划版本**：v2.1（基于 vLLM v0.20.1、DeepSeek V4、Qwen3.6、Blackwell SM10.0；本地 PRO 6000 96GB 单卡主线）
+> **规划版本**：v2.1.1（基于 vLLM v0.20.1、DeepSeek V4、Qwen3.6、Blackwell sm_120；本地 PRO 6000 Workstation 96GB 单卡主线）
 
 ---
 
@@ -129,7 +129,7 @@ mindmap
 
 **简历定位（一句话）：**
 
-> 7 年 Intel ISP/IPU 系统软件工程师，深度参与 IPU6→IPU8 在 Windows/Linux/FreeRTOS 的全栈研发，精通 SoC 异构计算、驱动/固件/调度。近期聚焦 LLM 推理优化，在 NVIDIA Blackwell SM10.0 平台完成 vLLM 源码贡献、NVFP4 量化部署、自研 PagedAttention + MLA 推理引擎。
+> 7 年 Intel ISP/IPU 系统软件工程师，深度参与 IPU6→IPU8 在 Windows/Linux/FreeRTOS 的全栈研发，精通 SoC 异构计算、驱动/固件/调度。近期聚焦 LLM 推理优化，在 NVIDIA Blackwell 家族（sm_120 RTX PRO 6000 Workstation）完成 vLLM 源码贡献、NVFP4 量化部署、自研 PagedAttention + MLA 推理引擎；熟悉 sm_120 与 sm_100 (B100/B200) 差异及代码移植路径。
 
 ---
 
@@ -139,14 +139,14 @@ mindmap
 
 | 部件 | 型号 | 备注 |
 |---|---|---|
-| GPU | NVIDIA RTX PRO 6000 Blackwell 96GB | SM 10.0 / 1792 GB/s / 600W |
+| GPU | NVIDIA RTX PRO 6000 Blackwell Workstation Edition 96GB | SM 12.0 (sm_120) / 1792 GB/s / 600W |
 | CPU | Intel Core Ultra 9 285K | |
 | 主板 | MSI PRO B860-P WIFI | |
 | 内存 | DDR5 ~30GB | ⚠️ 偏紧，建议 Week 1 内升级到 64GB+ |
 | 系统 | Ubuntu 24.04 LTS | Driver 595.58.03 + CUDA 13.2 |
 | 备用 | Mac mini M4 | 端侧 MLX 实验 |
 
-**与公司硬件对齐**：PRO 6000 = SM 10.0 数据中心架构，与 H100/B100/B200 100% 指令集兼容，简历卖点完全一致。
+**与公司硬件可移植性**：PRO 6000 Workstation 是 **sm_120**（Blackwell 家族 RTX/Workstation 分支），公司预期的 H100 (sm_90) / B100/B200 (sm_100) 是同家族不同 SM。**baseline PTX (`compute_90` / `compute_100`) 在 sm_120 上 JIT 可跑**，反向（sm_120 编的 cubin 拿到 sm_100）**不行**，需要重新编译。**sm_100 独占** tcgen05 + TMEM + 5 代 NVLink + INT4 Tensor Core；**sm_120 走** mma.sync + WGMMA。简历应表述为"sm_120 实战 + 熟悉 sm_100 移植路径"，**避免说"100% 兼容"**。
 
 ---
 
