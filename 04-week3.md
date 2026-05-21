@@ -5,6 +5,8 @@
 > **Week 3 是简历"差异化"关键**——会写 Triton kernel 是和应届生区别的硬指标。
 >
 > **环境**：本地 PRO 6000 96GB + vLLM v0.20.1，Qwen3.6-27B-FP8 已部署。
+>
+> **每日学习流程**：① 读今日面试题 → ② 去 ~/3rd/vllm 找对应源码 + 看 Triton tutorial → ③ 回答面试题 → ④ 手写 kernel/做实验 → ⑤ AI 反向检查 → ⑥ 写每日笔记（progress.md ≤30 行）
 
 ---
 
@@ -33,6 +35,9 @@ graph LR
 ---
 
 ## Day 15：Triton 入门 + Vector Add（2026-05-21，周四）
+
+### 🎯 今日面试题（八股来源：[08-job-strategy.md §4.2](./08-job-strategy.md)）
+- Q26: Triton vs CUDA 的取舍？什么场景用 Triton 更合适？（C.26）
 
 ### 上午（4h）：Triton 哲学
 
@@ -86,6 +91,10 @@ def vec_add(x, y):
 
 ## Day 16：Fused Kernel for LLM（2026-05-22，周五）
 
+### 🎯 今日面试题
+- Q26: Triton vs CUDA 的取舍？复习（C.26）
+- Q10: Sampling 中 temperature/top-k/top-p/repetition_penalty 的作用？（A.10）
+
 ### 上午（4h）：写 4 个 LLM 必备 fused kernel
 
 ```mermaid
@@ -135,6 +144,10 @@ nsys profile --stats=true python my_kernel_bench.py
 ---
 
 ## Day 17：NVFP4 量化部署（2026-05-23，周六）
+
+### 🎯 今日面试题
+- Q20: KV Cache 量化（FP16 → FP8 → INT4 → INT2 TurboQuant）的精度和容量 tradeoff？（B.20）
+- Q19: 投机解码 原理 + 什么时候 ROI 高/低？EAGLE 和 vanilla SpecDec 区别？（B.19）
 
 > **NVFP4 是 Blackwell 的杀手锏**，简历里写"NVFP4 实战经验"是巨大加分项。
 >
@@ -216,6 +229,9 @@ lm_eval --model vllm \
 
 ## Day 18：FP8 + Marlin GEMM（2026-05-24，周日）
 
+### 🎯 今日面试题
+- Q20: KV Cache 量化 复习（B.20）
+
 ### 上午（4h）：FP8 量化（更稳的兜底）
 
 **FP8 vs NVFP4 对比（基于公开资料 + 你今天自验）：**
@@ -258,6 +274,9 @@ python benchmarks/kernels/benchmark_marlin.py
 ---
 
 ## Day 19：TurboQuant 2-bit KV Cache（2026-05-25，周一）
+
+### 🎯 今日面试题
+- Q20: KV Cache 量化 复习，重点准备 2-bit TurboQuant 与 INT4 的精度差（B.20）
 
 > KV cache 容量再 ×4，长 context 神器。**Blackwell 上是否跑通同样需自验**。
 
@@ -311,6 +330,12 @@ vllm serve /home/xuefeiz2/models/Qwen3.6-27B-FP8 \
 ---
 
 ## Day 20：P-EAGLE 投机解码（2026-05-26，周二）
+
+### 🎯 今日面试题
+- Q19: 投机解码 原理 + 什么时候 ROI 高/低？EAGLE 和 vanilla SpecDec 区别？（B.19）
+- Q6: Chunked Prefill 是什么？解决什么问题？token budget 怎么选？（A.6）
+
+> **[jobs] 关联任务**: T-010（给 Qwen3.6-27B-FP8 启用 `--speculative-config` MTP，实测加速比与精度漂移）。对比 baseline / MTP-on，跑 humaneval 子集 50 题。
 
 ### 上午（4h）：投机解码原理
 
@@ -370,10 +395,15 @@ vllm bench latency --model /home/xuefeiz2/models/Qwen3.6-27B-FP8 \
 - [ ] MTP 或 P-EAGLE 至少跑通一种，得出本机吐字速度提升数据
 - [ ] 能解释为什么 batch 大了不划算
 - [ ] 找到 vLLM 中 spec_decode 的核心调度逻辑
+- [ ] **[jobs] T-010 ✓**: MTP 加速比 + humaneval 精度差记录到 progress.md
 
 ---
 
 ## Day 21：博客 3 + Hybrid 架构小结（2026-05-27，周三）
+
+### 🎯 今日面试题（Week 3 总复习）
+- Q19-26 全部复习（投机解码 / KV 量化 / Triton / Tensor Core / FlashAttention）
+- Q8: GQA/MQA/MHA/MLA 区别复习（A.8）
 
 ### 上午（4h）：Qwen3.6 Hybrid 架构深读 + 与 Mamba 系对照
 

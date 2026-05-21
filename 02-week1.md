@@ -5,6 +5,8 @@
 > **环境**：本地 PRO 6000 Blackwell 96GB + Ubuntu 24.04 + CUDA 13.2（Day 0 已就绪）。
 >
 > **每日产出**：commit 到自己的 GitHub repo `llm-infer-journey/week1/dayN/`
+>
+> **每日学习流程**：① 读今日面试题 → ② 去参考 repo 找对应代码 → ③ 回答面试题 → ④ 动手写代码/做实验 → ⑤ AI 反向检查 → ⑥ 写每日笔记（progress.md ≤30 行）
 
 ---
 
@@ -31,6 +33,9 @@ graph LR
 
 ## Day 1：环境校准 + 第一个 CUDA Kernel（2026-05-07，周四）
 
+### 🎯 今日面试题（八股来源：[08-job-strategy.md §4.2](./08-job-strategy.md)）
+- Q23: Warp divergence 是什么？如何规避？（C.23）
+
 ### 上午（4h）：本地 CUDA 工具链验证 + 工具安装
 
 ```mermaid
@@ -45,7 +50,7 @@ graph TD
 **checklist：**
 - [ ] `nvidia-smi` 显示 PRO 6000 Blackwell 96GB / Driver 595.58.03
 - [ ] `nvcc -V` 显示 CUDA 13.2
-- [ ] `python -c "import torch; print(torch.cuda.get_device_capability())"` → `(10, 0)`
+- [ ] `python -c "import torch; print(torch.cuda.get_device_capability())"` → `(12, 0)` (sm_120)
 - [ ] 创建 `~/self/llm-infer-journey/.venv`，激活后装 vllm 0.20.1 + torch + triton
 - [ ] 安装 `nsight-systems` `nsight-compute`（性能分析必备）
 - [ ] 创建 GitHub repo `llm-infer-journey`，README 写"Intel ISP 工程师转型 LLM 推理 30 天打卡"
@@ -82,6 +87,10 @@ __global__ void vec_add(const float* a, const float* b, float* c, int n) {
 ---
 
 ## Day 2：GEMM 朴素实现 + 共享内存（2026-05-08，周五）
+
+### 🎯 今日面试题
+- Q21: GEMM 优化：从 naive 到 cuBLAS 70% 的 5 个层级（tiling/shared mem/register/vector/double buffer）（C.21）
+- Q22: Bank conflict 是什么？如何避免？（C.22）
 
 ### 上午（4h）：朴素 GEMM
 
@@ -135,6 +144,9 @@ ncu --set full -o gemm_v2 ./gemm_v2
 
 ## Day 3：GEMM 优化进阶 + Tensor Core（2026-05-09，周六）
 
+### 🎯 今日面试题
+- Q24: Tensor Core (wmma/wgmma) 用法和限制？Blackwell 5 代 Tensor Core 新增什么？（C.24）
+
 ### 上午（4h）：v3/v4 优化
 
 **关键技术：**
@@ -183,6 +195,10 @@ __global__ void hgemm_wmma(half* A, half* B, float* C, int M, int N, int K) {
 ---
 
 ## Day 4：FlashAttention 原理 + Softmax（2026-05-10，周日）
+
+### 🎯 今日面试题
+- Q25: FlashAttention 为什么省显存？Online softmax 数学推导？（C.25）
+- Q27: Roofline 模型怎么用？给一个 kernel，你怎么判断它是 compute-bound 还是 memory-bound？（C.27）
 
 ### 上午（4h）：手写 Softmax kernel
 
@@ -241,6 +257,10 @@ graph LR
 ---
 
 ## Day 5：LLM 推理算力/显存/延迟公式（2026-05-11，周一）
+
+### 🎯 今日面试题
+- Q2: 算下面这个 Decode TPS：模型 27B FP8，KV cache FP8 32K context，PRO 6000 (1792 GB/s)。（A.2）
+- Q7: TTFT / TPOT / E2E latency / Throughput / Goodput 分别怎么定义？（A.7）
 
 > **这一天最重要——LLM 推理工程师的"基本功"**
 
@@ -334,7 +354,13 @@ else:
 
 ## Day 6：vLLM 部署 hello world + Benchmark（2026-05-12，周二）
 
-### 上午（4h）：vLLM 安装与首次部署
+### 🎯 今日面试题
+- Q1: Prefill 和 Decode 阶段的区别？为什么一个 compute-bound 一个 memory-bound？（A.1）
+- Q7: TTFT / TPOT / E2E latency / Throughput / Goodput 分别怎么定义？（A.7，复习）
+
+> **[jobs] 关联任务**: T-001（跑通 vLLM serve Qwen3.6-27B-FP8，记录冷启动时间分布）。在 vLLM 首次部署时顺手完成，记录 ckpt 加载耗时、CUDA graph capture 耗时、warmup 耗时三段。
+
+### 上午（4h）：vLLM 安装与首次部署（[jobs] T-001）
 
 ```bash
 # 已在 Day 1 装好 vllm==0.20.1，直接部署 FP8 主力模型
@@ -356,7 +382,10 @@ curl http://localhost:8000/v1/chat/completions \
 
 > 💡 vLLM v0.20.1 已原生支持 `qwen3_5` 架构（即 Qwen3.6 系列），代码在 `vllm/model_executor/models/qwen3_5.py` + `qwen3_5_mtp.py`。
 
-### 下午（4h）：Benchmark 工具链
+### 下午（4h）：Benchmark 工具链（[jobs] T-002 + T-003）
+
+> **[jobs] T-002**: 用 `vllm bench serve` 压一组 (concurrency 1/4/8/16)，画 TTFT vs TPS 曲线 → 1 张 PNG。
+> **[jobs] T-003**: 把 `--gpu-memory-utilization` 从 0.85 调到 0.95，观察 max_num_seqs 与 OOM 概率 → 3 个值各跑 200 个请求。
 
 **3 个必学工具：**
 
@@ -404,10 +433,17 @@ evalscope perf \
 - [ ] 跑出 batch=1/16/64 的 throughput 对比表
 - [ ] 测出本机 TTFT、TPOT 数值（对照 Day 5 理论上限 66 tps）
 - [ ] 截图三种 benchmark 工具的输出
+- [ ] **[jobs] T-001 ✓**: 冷启动三段耗时记录到 progress.md
+- [ ] **[jobs] T-002 ✓**: TTFT vs TPS 曲线图 commit 到 repo
+- [ ] **[jobs] T-003 ✓**: 3 个 gpu-memory 值的 OOM 数据记录
 
 ---
 
 ## Day 7：复盘 + 博客 1（2026-05-13，周三）
+
+### 🎯 今日面试题（Week 1 总复习）
+- Q21-27 全部复习一遍（GEMM 优化 / bank conflict / warp divergence / Tensor Core / FlashAttention / Roofline）
+- Q1: Prefill vs Decode 差异（自问自答，流利 1 分钟内）
 
 ### 上午（4h）：整理 GitHub repo
 

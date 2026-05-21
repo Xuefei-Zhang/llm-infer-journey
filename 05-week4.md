@@ -5,6 +5,8 @@
 > **30 天成败在此一周。**
 >
 > **环境**:本地 PRO 6000 96GB + Qwen3.6-27B-FP8 已部署。Mini-vLLM 验证用小模型,性能对比也用 Qwen3.6-27B-FP8。
+>
+> **每日学习流程 (Day 22-26)**：① 读今日面试题 → ② 去 ~/3rd/nano-vllm 和 ~/3rd/vllm 对照看源码 → ③ 回答面试题 → ④ 手写 mini-vllm 代码 → ⑤ AI 反向检查 → ⑥ pytest 跑通 + 写每日笔记
 
 ---
 
@@ -37,7 +39,12 @@ graph LR
 
 ## Day 22:Mini-vLLM 项目启动(2026-05-28,周四)
 
-### 上午(4h):项目初始化
+### 🎯 今日面试题（先答，再看代码，再写代码）
+- Q3: PagedAttention 解决什么问题？为什么 block_size 通常选 16？（八股 A.3）
+- Q5: Continuous Batching vs Static Batching 区别和优势？（八股 A.5）
+- **阅读**：先读 nano-vllm 全部 19 个 .py 文件（~1,200 行），建立架构理解，再对照 vLLM 对应文件加深。详见 [06-mini-vllm-design.md §十二](./06-mini-vllm-design.md#十二参考实现) 的 nano-vllm 对照表。
+
+### 上午(4h):nano-vllm 通读 + 项目初始化
 
 ```bash
 mkdir mini-vllm && cd mini-vllm
@@ -60,7 +67,9 @@ EOF
 uv pip install -r requirements.txt
 ```
 
-### 下午(4h):实现 Tokenizer + Model Loading
+### 下午(4h):对照 nano-vllm 实现 Tokenizer + Model Loading
+
+**参考 nano-vllm**: `nanovllm/utils/loader.py`（weight_loader hook）、`nanovllm/models/qwen3.py`（完整 forward）
 
 **`mini_vllm/model/loader.py`**:
 - 用本地已有的小模型迭代(如 Qwen2.5-1.5B,host RAM 友好)
@@ -93,16 +102,23 @@ class QwenAttention(nn.Module):
 - README 必须有:项目截图、架构图、benchmark 数字(先占位)
 
 ### Checkpoint
+- [ ] nano-vllm 19 个 .py 文件通读完毕，能说出每个文件对应 vLLM 哪个模块
 - [ ] 小模型权重能加载(host RAM 不爆)
 - [ ] 能跑通 forward(就算只支持 batch=1, 不带 KV cache 也行)
+- [ ] `tests/test_e2e.py`: `engine.generate("Hello")` 返回非空字符串
+
+---
 
 ---
 
 ## Day 23:PagedAttention 实现(2026-05-29,周五)
 
-### 上午(4h):KV Cache Manager
+### 🎯 今日面试题（先答，再看代码，再写代码）
+- Q12: vLLM Scheduler 怎么调度？Running / Waiting / Preempted 状态如何流转？（八股 B.12）
+- Q13: Preemption 触发条件？被抢占的 KV cache 怎么处理（recompute vs swap）？（八股 B.13）
+- **阅读**：nano-vllm `nanovllm/engine/block_manager.py` + `nanovllm/engine/scheduler.py`，对照 vLLM `vllm/v1/core/kv_cache_manager.py`
 
-**核心数据结构(参考 vLLM v0.20.1 但简化):**
+### 上午(4h):KV Cache Manager（对照 nano-vllm block_manager）
 
 ```python
 class KVCacheManager:
@@ -130,7 +146,7 @@ class KVCacheManager:
         ...
 ```
 
-### 下午(4h):PagedAttention Triton Kernel
+### 下午(4h):PagedAttention Triton Kernel（对照 nano-vllm attention.py）
 
 **简化版(只支持 decode,不支持 prefill):**
 
@@ -154,17 +170,26 @@ def paged_attention_decode_kernel(
 ### 晚上(1h):单元测试
 - 写一个 reference attention(torch eager)
 - 对比 paged attention 输出,diff < 1e-3
+- 写入 `tests/test_attention.py`
 
 ### Checkpoint
 - [ ] KV cache 分配/释放测试通过
-- [ ] paged attention 数值正确
+- [ ] paged attention 数值正确（vs naive PyTorch attention, diff < 1e-3）
 - [ ] 能跑出第一个连续 token(但还没 batching)
+- [ ] `tests/test_kv_manager.py` + `tests/test_attention.py` 通过
+
+---
 
 ---
 
 ## Day 24:Continuous Batching Scheduler(2026-05-30,周六)
 
-### 上午(4h):Scheduler 核心算法
+### 🎯 今日面试题（先答，再看代码，再写代码）
+- Q12: vLLM Scheduler 怎么调度？Running / Waiting / Preempted 状态如何流转？（八股 B.12）
+- Q6: Chunked Prefill 是什么？解决什么问题？token budget 怎么选？（八股 A.6）
+- **阅读**：nano-vllm `nanovllm/engine/scheduler.py` + `nanovllm/engine/llm_engine.py`，对照 vLLM `vllm/v1/core/sched/scheduler.py` 和 `vllm/v1/engine/core.py`
+
+### 上午(4h):Scheduler 核心算法（对照 nano-vllm scheduler）
 
 ```python
 class Scheduler:
@@ -201,7 +226,7 @@ class Scheduler:
         )
 ```
 
-### 下午(4h):Engine 主循环
+### 下午(4h):Engine 主循环（对照 nano-vllm llm_engine）
 
 ```python
 class LLMEngine:
@@ -245,14 +270,22 @@ print(outs)  # 期望两个合理回答
 - [ ] 多请求 batching 跑通
 - [ ] Chunked prefill 工作正常
 - [ ] 至少 batch=4 时正确生成
+- [ ] `tests/test_scheduler.py` 通过 + `tests/test_e2e.py` smoke test 通过
 
 ---
 
-## Day 25:MLA Backend + FlashAttention 接入(2026-05-31,周日)
+---
 
-### 上午(4h):MLA backend(简历加分)
+## Day 25:FA4 接入 + MLA 骨架(2026-05-31,周日)
 
-> 注意:Qwen3.6 用的是 GQA + hybrid linear attention,**不是 MLA**。MLA 是 DeepSeek V2/V3/V4 系列的特色。如果你 Week 2 跑通了 DeepSeek 蒸馏版,这里再实现 MLA 才有意义;否则可以选择只做 GQA + hybrid 路线,把"hybrid attention 简化版"做成项目亮点。
+### 🎯 今日面试题（先答，再看代码，再写代码）
+- Q8: GQA / MQA / MHA / MLA 4 种 attention 的差别和 KV cache 大小公式？（八股 A.8）
+- Q25: FlashAttention 为什么省显存？Online softmax 数学推导？（八股 C.25）
+- **阅读**：nano-vllm `nanovllm/layers/attention.py`，对照 vLLM `vllm/v1/attention/backends/flash_attn.py`
+
+> **优先级**：FA4 接入 > MLA 骨架。如果前 3 天进度正常，Day 25 优先完成 FA4 接入，MLA 只做代码骨架 + TODO 注释。README 中标注 `⏳ MLA backend (WIP)` 比完全没有好。
+
+### 上午(4h):MLA backend 骨架(简历加分)
 
 ```python
 class MLABackend:
@@ -279,7 +312,7 @@ class MLABackend:
         return flash_attn(q, k, v)
 ```
 
-### 下午(4h):接入真 FlashAttention 4
+### 下午(4h):接入真 FlashAttention 4（优先完成）
 
 ```python
 from flash_attn import flash_attn_varlen_func  # FA4 cu13 wheel
@@ -303,12 +336,21 @@ class FlashAttentionBackend:
 - 对比输出与 vLLM v0.20.1 是否一致(允许小数值差异,不允许语义崩坏)
 
 ### Checkpoint
-- [ ] MLA backend 跑通(或明确放弃 + 文档说明,选择 GQA hybrid 路线)
-- [ ] FA4 backend 集成完成
+- [ ] FA4 backend 集成完成（优先）
+- [ ] MLA backend 代码骨架 + TODO 注释（README 标 `⏳ MLA backend (WIP)`）
+- [ ] `tests/test_attention.py` 新增 FA4 数值验证
+
+---
 
 ---
 
 ## Day 26:Benchmark 对标 vLLM + 项目完善(2026-06-01,周一)
+
+### 🎯 今日面试题（先答，再看代码，再写代码）
+- Q7: TTFT / TPOT / E2E latency / Throughput / Goodput 分别怎么定义？（八股 A.7）
+- Q27: Roofline 模型怎么用？给一个 kernel，你怎么判断它是 compute-bound 还是 memory-bound？（八股 C.27）
+
+> **[jobs] 关联任务**: T-015（Prometheus/Grafana 看板）与 benchmark 同一天完成，不需要额外的一天。
 
 ### 上午(4h):Benchmark 脚本
 
@@ -335,7 +377,9 @@ print(f"Mini-vLLM: {mini_t:.2f}s, vLLM: {vllm_t:.2f}s, ratio: {mini_t/vllm_t:.1%
 
 > 如果 27B-FP8 host RAM OOM,先用 Qwen2.5-7B-FP8 之类小模型出 benchmark,把 27B 列为"Future Work"。诚实 > 编数。
 
-### 下午(4h):写完整 README + 项目文档
+### 下午(4h):写完整 README + 项目文档 + Grafana 看板([jobs] T-015)
+
+> **[jobs] T-015**: 给 mini-vLLM 服务加 Prometheus 指标暴露，Grafana 出 1 张看板。监控含 TTFT P50/P99 / running req / waiting req / KV usage / TPS / OOM count。与 benchmark 同一天完成，把截图直接贴进 README。
 
 **README 必备内容(这是简历链接的脸面):**
 
@@ -369,14 +413,21 @@ A from-scratch LLM inference engine with PagedAttention, hybrid attention, and C
 [每个模块的 design note 链接]
 ````
 
-### 晚上(1h):录 demo 视频
-- 30 秒视频展示项目运行
-- 上传 YouTube + B站 + Twitter
+### 晚上(1h):Benchmark 回归 + 单元测试全量跑
+- `pytest tests/` 全量通过
+- `benchmarks/bench_throughput.py` vs `benchmarks/bench_latency.py` 跑 3 次取 best
+- 截 terminal 动图(asciinema)贴 README，不录视频
+
+> **Day 25/26 调整说明**: 删掉原"录 demo 视频"环节（30 秒视频对简历帮助有限），把 1h 省出来做 benchmark 回归 + 单元测试补全。MLA 在 Day 25 降为骨架 + TODO，FA4 为优先完成项。
 
 ### Checkpoint
 - [ ] Benchmark 数字出炉(实测,至少一个模型有数据)
-- [ ] README 完整且专业
+- [ ] README 完整且专业 + asciinema 动图
+- [ ] Grafana 看板截图进 README（[jobs] T-015 ✓）
+- [ ] `pytest tests/` 全量通过
 - [ ] GitHub repo 标星 ≥1(自己点)
+
+---
 
 ---
 
@@ -424,9 +475,11 @@ graph TD
 
 ---
 
-## Day 28:面试八股 + Mock(2026-06-03,周三)
+## Day 28:面试八股复习 + Mock(2026-06-03,周三)
 
-### 全天 8h:高密度备考
+### 全天 8h:复习（不是突击，是回顾前 27 天的面试题）
+
+> 前 27 天每天 1-2 道面试题已经覆盖 30 题中的绝大部分。今天的重点是：查漏补缺 + 用 mini-vllm 实战经验回答。
 
 **必背 30 道八股**(详见 [08-job-strategy.md](./08-job-strategy.md)):
 - LLM 推理基础(10 道)

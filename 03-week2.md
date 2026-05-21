@@ -5,6 +5,8 @@
 > **Week 2 是整个 30 天计划的核心**——读懂 vLLM 是国内大模型推理岗的硬门槛。
 >
 > **环境**：本地 PRO 6000 96GB + vLLM v0.20.1 (Day 1 已装)。
+>
+> **每日学习流程**：① 读今日面试题 → ② 去 ~/3rd/vllm 找对应源码（Day 8 先 clone） → ③ 回答面试题 → ④ 动手做实验/部署 → ⑤ AI 反向检查 → ⑥ 写每日笔记（progress.md ≤30 行）
 
 ---
 
@@ -31,6 +33,9 @@ graph LR
 ---
 
 ## Day 8：Anatomy of vLLM 精读 + 架构总览（2026-05-14，周四）
+
+### 🎯 今日面试题（八股来源：[08-job-strategy.md §4.2](./08-job-strategy.md)）
+- Q11: vLLM 的整体架构？画一个 7 层调用栈图。（B.11）
 
 ### 上午（4h）：精读官方长文
 
@@ -91,6 +96,10 @@ uv pip install -e .  # editable install（用 Day 1 的 venv）
 
 ## Day 9：Engine + Scheduler 源码（2026-05-15，周五）
 
+### 🎯 今日面试题
+- Q12: vLLM Scheduler 怎么调度？Running / Waiting / Preempted 状态如何流转？（B.12）
+- Q5: Continuous Batching vs Static Batching 区别和优势？（A.5）
+
 ### 上午（4h）：AsyncLLMEngine 主循环
 
 **核心文件：`vllm/v1/engine/core.py`**
@@ -147,6 +156,9 @@ flowchart TD
 ---
 
 ## Day 10：Model Runner V2 深读（2026-05-16，周六）
+
+### 🎯 今日面试题
+- Q14: CUDA Graph 在 vLLM 里怎么用？为什么需要 piecewise capture？（B.14）
 
 > **MRV2 是 2026 年 vLLM 的新核心**，旧的 ModelRunner 已废弃
 
@@ -206,6 +218,12 @@ print(f"step {step_idx}: prefill={n_prefill}, decode={n_decode}")
 
 ## Day 11：PagedAttention + KV Cache Manager（2026-05-17，周日）
 
+### 🎯 今日面试题
+- Q3: PagedAttention 解决什么问题？为什么 block_size 通常选 16？（A.3）
+- Q4: Prefix Caching 怎么工作？哪些场景命中率高？（A.4）
+
+> **[jobs] 关联任务**: T-005（Nsight profiling prefill+decode）、T-004（prefix caching 对比测试）。刚读完 PagedAttention 源码就 profiling，趁热打铁。
+
 ### 上午（4h）：PagedAttention 论文 + 源码
 
 **必读：**
@@ -231,7 +249,10 @@ graph LR
     style P3 fill:#d4edda
 ```
 
-### 下午（4h）：Prefix Caching 实战（Coding Agent 杀手锏）
+### 下午（4h）：Prefix Caching 实战 + Nsight profiling（[jobs] T-004 + T-005）
+
+> **[jobs] T-004**: 启用 `--enable-prefix-caching`，构造 2 组 prompt（共享前缀 vs 完全独立），报 prefix cache hit rate + TTFT 差。
+> **[jobs] T-005**: 用 `nvidia-smi dmon -s pucvmet` + `nsys profile` 抓一次 prefill+decode 全过程，1 张 nsys 时间线截图，标出 prefill/decode/sampling/idle 各占比。
 
 **为什么 Prefix Caching 是 Coding Agent 杀手锏：**
 - Agent 每次请求 system prompt + tool定义都一样（5K-20K token）
@@ -256,10 +277,16 @@ vllm serve ~/models/Qwen3.6-27B-FP8 \
 - [ ] 能解释 block_size 选 16 的原因
 - [ ] 跑 benchmark 对比 prefix_caching on/off 的 TTFT 差异
 - [ ] 找到 vLLM 中 KV cache 总块数的计算公式
+- [ ] **[jobs] T-004 ✓**: prefix cache hit rate + TTFT 差记录到 progress.md
+- [ ] **[jobs] T-005 ✓**: nsys 时间线截图 commit 到 repo
 
 ---
 
 ## Day 12：MLA + FlashAttention 4 实战（2026-05-18，周一）
+
+### 🎯 今日面试题
+- Q8: GQA / MQA / MHA / MLA 4 种 attention 的差别和 KV cache 大小公式？（A.8）
+- Q9: RoPE / ALiBi 区别？为什么 RoPE 主流？长 context 时怎么扩展（YaRN, LongRoPE）？（A.9）
 
 ### 上午（4h）：MLA (Multi-head Latent Attention) 原理
 
@@ -324,6 +351,10 @@ vllm serve ~/models/Qwen3.6-27B-FP8 \
 
 ## Day 13：Disaggregated Serving (P/D 分离)（2026-05-19，周二）
 
+### 🎯 今日面试题
+- Q16: Disaggregated P/D 分离 的好处和代价？KV transfer 怎么做（NVLink/RDMA）？（B.16）
+- Q15: 设计一个 70B 模型的推理服务支持 1000 QPS，怎么做？（TP + DP + P/D 分离 + 路由）（B.15）
+
 ### 上午（4h）：P/D 分离原理
 
 **为什么要 P/D 分离：**
@@ -368,17 +399,23 @@ vllm serve ~/models/Qwen3.6-27B-FP8 \
 python examples/online_serving/disaggregated_prefill_proxy.py
 ```
 
-### 晚上（1h）：阅读
-- 📝 [LMCache 项目](https://github.com/LMCache/LMCache) - 开源 KV transfer 层
+### 晚上（1h）：On-call 练习（[jobs] T-041 提前做）
+
+> **[jobs] T-041**: 故意制造一次 OOM（把 `--gpu-memory-utilization 0.99` + 高并发），完整复盘。在 `postmortems/` 写五问复盘（发现-止损-定位-修复-预防）。原计划 Week 5+ 做，提前到 Week 2 末，与 P/D 分离实验衔接。
 
 ### Checkpoint
 - [ ] 能解释 P/D 分离的 goodput 提升机制
 - [ ] 本地跑通最简 P/D demo（哪怕 2 进程）
 - [ ] 知道 Mooncake / DistServe / Splitwise 三种方案差异
+- [ ] **[jobs] T-041 ✓**: 一次故意 OOM 复盘写入 `postmortems/`
 
 ---
 
 ## Day 14：博客 2 + 提交 vLLM PR（2026-05-20，周三）
+
+### 🎯 今日面试题（Week 2 总复习）
+- Q11-16 全部复习（vLLM 架构 / Scheduler / CUDA Graph / PagedAttention / P/D 分离 / 系统设计）
+- 自问自答 Q11（画 7 层架构图），2 分钟内完成
 
 ### 上午（4h）：找一个能改的 vLLM issue
 

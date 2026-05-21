@@ -184,7 +184,41 @@ graph LR
     style D fill:#fff3cd
 ```
 
-### 4.2 八股 30 题（必背）
+### 4.2 每日面试题库映射（30 题分 27 天）
+
+> 30 题不再在 Day 28 集中突击，而是每天 1-2 道嵌入对应 Day 的学习。每天开始前先读面试题，再看参考代码，再动手写。
+
+| Day | 面试题编号 | 主题 | 对应文件 |
+|---|---|---|---|
+| Day 1 | C.23 | Warp divergence | 02-week1.md |
+| Day 2 | C.21, C.22 | GEMM 优化 / Bank conflict | 02-week1.md |
+| Day 3 | C.24 | Tensor Core | 02-week1.md |
+| Day 4 | C.25, C.27 | FlashAttention / Roofline | 02-week1.md |
+| Day 5 | A.2, A.7 | Decode TPS 计算 / 指标定义 | 02-week1.md |
+| Day 6 | A.1 | Prefill vs Decode | 02-week1.md |
+| Day 7 | 总复习 Q21-27 | Week 1 复习 | 02-week1.md |
+| Day 8 | B.11 | vLLM 整体架构 | 03-week2.md |
+| Day 9 | B.12, A.5 | Scheduler / Continuous Batching | 03-week2.md |
+| Day 10 | B.14 | CUDA Graph | 03-week2.md |
+| Day 11 | A.3, A.4 | PagedAttention / Prefix Caching | 03-week2.md |
+| Day 12 | A.8, A.9 | GQA/MLA / RoPE | 03-week2.md |
+| Day 13 | B.16, B.15 | P/D 分离 / 系统设计 | 03-week2.md |
+| Day 14 | B.11 复习 | vLLM 架构回顾 | 03-week2.md |
+| Day 15 | C.26 | Triton vs CUDA | 04-week3.md |
+| Day 16 | C.26, A.10 | Triton 复习 / Sampling | 04-week3.md |
+| Day 17 | B.20, B.19 | KV 量化 / 投机解码 | 04-week3.md |
+| Day 18 | B.20 复习 | KV 量化 | 04-week3.md |
+| Day 19 | B.20 复习 | TurboQuant | 04-week3.md |
+| Day 20 | B.19, A.6 | 投机解码 / Chunked Prefill | 04-week3.md |
+| Day 21 | 总复习 Q19-26 | Week 3 复习 | 04-week3.md |
+| Day 22 | A.3, A.5 | PagedAttention / Continuous Batching | 05-week4.md |
+| Day 23 | B.12, B.13 | Scheduler / Preemption | 05-week4.md |
+| Day 24 | B.12, A.6 | Scheduler / Chunked Prefill | 05-week4.md |
+| Day 25 | A.8, C.25 | MLA / FlashAttention | 05-week4.md |
+| Day 26 | A.7, C.27 | 指标定义 / Roofline | 05-week4.md |
+| Day 28 | 30 题全量 | 查漏补缺 + mini-vllm 实战经验 | 05-week4.md |
+
+### 4.3 八股 30 题（完整清单）
 
 #### A. LLM 推理基础（10 题）
 
@@ -225,7 +259,7 @@ graph LR
 29. **Blackwell vs Hopper (sm_90)** 主要差异（FP4/FP6 Tensor Core、TMA 增强、Cluster 升级、NVFP4 微缩放）；**Blackwell sm_100 (B100/B200) vs sm_120 (PRO 6000 Workstation / RTX 5090)** 主要差异（tcgen05 + TMEM 仅 sm_100；5 代 NVLink、INT4 TC、228KB shared mem 仅 sm_100；sm_120 走 mma.sync + WGMMA；二进制 cubin 不互通，baseline PTX 向前兼容 sm_100 → sm_120）？
 30. **PCIe / NVLink** 带宽数字？TP-8 时为什么需要 NVLink？
 
-### 4.3 系统设计高频题
+### 4.4 系统设计高频题
 
 ```mermaid
 graph TD
@@ -245,7 +279,7 @@ graph TD
 - 设计 DeepSeek V3 671B MoE 的多机推理（H100 集群）
 - 设计长文档总结服务（输入 1M token, 输出 4K token）
 
-### 4.4 必问反问环节
+### 4.5 必问反问环节
 
 **好的反问（显示思考）：**
 - 团队现在的技术 stack 是 vLLM 还是自研？为什么？

@@ -200,6 +200,9 @@ class Request:
 
 ### 5.2 KV Cache Manager
 
+> 📌 参考 nano-vllm: `nanovllm/engine/block_manager.py`（含 prefix caching 实现）
+> 📌 参考 vLLM: `vllm/v1/core/kv_cache_manager.py` (~600 行)
+
 ```python
 # mini_vllm/kv_cache/manager.py
 import torch
@@ -268,6 +271,9 @@ class KVCacheManager:
 ```
 
 ### 5.3 Scheduler
+
+> 📌 参考 nano-vllm: `nanovllm/engine/scheduler.py`（双队列 + chunked prefill）
+> 📌 参考 vLLM: `vllm/v1/core/sched/scheduler.py` (~1200 行)
 
 ```python
 # mini_vllm/scheduler/scheduler.py
@@ -349,6 +355,9 @@ class Scheduler:
 
 ### 5.4 LLM Engine 主循环
 
+> 📌 参考 nano-vllm: `nanovllm/engine/llm_engine.py`（含 TP 多进程 spawn）
+> 📌 参考 vLLM: `vllm/v1/engine/core.py` (~800 行)
+
 ```python
 # mini_vllm/engine/llm_engine.py
 class LLMEngine:
@@ -398,6 +407,9 @@ class LLMEngine:
 
 ### 5.5 Attention Backend
 
+> 📌 参考 nano-vllm: `nanovllm/layers/attention.py`（SDPA + Triton KV store）
+> 📌 参考 vLLM: `vllm/v1/attention/backends/flash_attn.py` (~800 行)
+
 ```python
 # mini_vllm/attention/backend_base.py
 class AttentionBackend(ABC):
@@ -439,6 +451,8 @@ class FlashAttentionBackend(AttentionBackend):
 
 ### 5.6 OpenAI 兼容 HTTP server
 
+> 📌 nano-vllm 无 HTTP server，需完全自写。可参考 vLLM: `vllm/entrypoints/openai/api_server.py`
+
 ```python
 # mini_vllm/server/api_server.py
 from fastapi import FastAPI
@@ -472,15 +486,15 @@ gantt
     title Mini-vLLM 5 天开发节奏
     dateFormat YYYY-MM-DD
     section Day22
-    项目骨架 + Tokenizer + Model loader  :2026-05-28, 1d
+    nano-vllm 通读 + 项目骨架 + Tokenizer + Model loader :2026-05-28, 1d
     section Day23
     KVCacheManager + Paged Attn kernel   :2026-05-29, 1d
     section Day24
     Scheduler + LLMEngine 主循环          :2026-05-30, 1d
     section Day25
-    MLA backend + FA 接入 + DeepSeek 测试 :2026-05-31, 1d
+    FA4 接入 + MLA 骨架 + 测试           :2026-05-31, 1d
     section Day26
-    HTTP server + Benchmark + README     :2026-06-01, 1d
+    HTTP server + Benchmark + README + Grafana :2026-06-01, 1d
 ```
 
 ---
@@ -493,7 +507,7 @@ gantt
 | ⭐⭐⭐ | FP8 quantization 支持 | 高 |
 | ⭐⭐ | CUDA Graph for decode | 中 |
 | ⭐⭐ | Speculative decoding (vanilla) | 中 |
-| ⭐ | 张量并行 (TP) | 高但难，5 天难做完 |
+| ⭐⭐ | 张量并行 (TP) — 参考 nano-vllm 的 TP 线性层 | 高但难，5 天难做完 |
 | ⭐ | Disaggregated P/D | 高但难 |
 
 ---
@@ -561,10 +575,10 @@ flowchart TD
 
 | 风险 | 概率 | 兜底 |
 |---|---|---|
-| paged attn kernel 写不出 | 高 | 直接调 vLLM 的 `_custom_ops.paged_attention_v1` |
-| MLA 跑不起来 | 中 | 砍 MLA，只支持 GQA Qwen |
+| paged attn kernel 写不出 | 高 | 参考 nano-vllm 的 Triton KV store → 或直接调 vLLM 的 `_custom_ops.paged_attention_v1` |
+| MLA 跑不起来 | 中 | 做代码骨架 + TODO 注释，README 标 `⏳ MLA backend (WIP)` |
 | 性能差 vLLM 100× | 中 | 不报数字，强调架构理解 |
-| 5 天写不完 | 中 | 砍 HTTP server + MLA + sampling 优化 |
+| 5 天写不完 | 中 | 砍 HTTP server + MLA + sampling 优化。Day 25 优先 FA4 接入，MLA 做骨架 |
 
 ---
 
@@ -572,11 +586,34 @@ flowchart TD
 
 | 项目 | 用途 |
 |---|---|
-| [vLLM v0.20.1](https://github.com/vllm-project/vllm) | 抄架构（含 `vllm/v1/`、`qwen3_5.py`、`qwen3_5_mtp.py`）|
+| [vLLM v0.20.1](https://github.com/vllm-project/vllm) (`~/3rd/vllm`) | 生产级架构（含 `vllm/v1/`、`qwen3_5.py`、`qwen3_5_mtp.py`）|
+| [nano-vllm](https://github.com/) (`~/3rd/nano-vllm`) | **教学级最小实现，~1,200 行，编码时的"参考答案"** |
 | [LightLLM](https://github.com/ModelTC/lightllm) | 参考更轻量实现 |
 | [SGLang](https://github.com/sgl-project/sglang) | 参考 RadixAttention |
 | [llm.c](https://github.com/karpathy/llm.c) | 极简 inference 灵感 |
 | [llama2.c](https://github.com/karpathy/llama2.c) | 单文件 inference |
+
+### nano-vllm 对照表（逐模块映射）
+
+Day 22 开始前通读 nano-vllm 全部 19 个 .py 文件，建立与本项目的对应关系：
+
+| 本模块 | nano-vllm 文件 | vLLM 对应文件 | 差异说明 |
+|---|---|---|---|
+| config.py | `nanovllm/config.py` | `vllm/config/vllm.py` (89KB) | nano-vllm 一个 dataclass，vLLM 拆 23 个 config 类 |
+| Request/SamplingParams | `nanovllm/sampling_params.py` | `vllm/sampling_params.py` (40KB) | nano-vllm 只有 temperature/top_p，vLLM 含 guided decoding 等 |
+| LLMEngine | `nanovllm/engine/llm_engine.py` | `vllm/v1/engine/core.py` (~800 行) | nano-vllm 含 TP 多进程，本项目暂不做 TP |
+| Scheduler | `nanovllm/engine/scheduler.py` | `vllm/v1/core/sched/scheduler.py` (~1200 行) | 双队列 + chunked prefill 结构一致 |
+| KVCacheManager | `nanovllm/engine/block_manager.py` | `vllm/v1/core/kv_cache_manager.py` (~600 行) | nano-vllm 已有 xxhash prefix caching，可直接参考 |
+| ModelRunner | `nanovllm/engine/model_runner.py` | `vllm/v1/worker/gpu_model_runner.py` (~2000 行) | nano-vllm 有 CUDA graph capture for decode |
+| Attention | `nanovllm/layers/attention.py` | `vllm/v1/attention/backends/flash_attn.py` (~800 行) | nano-vllm 用 SDPA + Triton KV store，本项目用 FA4 + Triton paged attn |
+| Linear (TP) | `nanovllm/layers/linear.py` | `vllm/model_executor/layers/linear.py` | nano-vllm 有 QKVParallelLinear/ColumnParallelLinear/RowParallelLinear 完整实现 |
+| RMSNorm | `nanovllm/layers/layernorm.py` | `vllm/model_executor/layers/normalization.py` | 本项目用 Triton fused |
+| RoPE | `nanovllm/layers/rotary_embedding.py` | `vllm/model_executor/layers/rotary_embedding.py` | 本项目用 Triton fused |
+| Sampler | `nanovllm/layers/sampler.py` | `vllm/v1/sample/sampler.py` | nano-vllm 只有 temperature sampling |
+| Qwen3 Model | `nanovllm/models/qwen3.py` | `vllm/model_executor/models/qwen3_5.py` | nano-vllm 有 tensor-parallel 的完整 Qwen3 forward |
+| Weight Loader | `nanovllm/utils/loader.py` | `vllm/model_executor/model_loader/` | nano-vllm 有 weight_loader hook 机制 |
+
+> **学习路径**：Day 22 开始前先通读 nano-vllm → 理解每个文件做什么 → 再看 vLLM 对应文件加深理解 → 然后在 mini-vllm 中从零手写。
 
 ---
 

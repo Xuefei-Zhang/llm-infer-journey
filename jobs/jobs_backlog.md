@@ -6,10 +6,18 @@
 
 ## 怎么挑
 
-- **现在(Day 0)**:不挑,先把主计划 Week 1 走完。
-- **Week 2 末周末**:从 L1 区挑 1 条,4h 内完成,练手。
-- **Week 4 末**:从 L2-L3 区挑 1-2 条,作为 mini-vLLM 项目的"扩展实验"。
-- **Week 5+ 空窗**:每周 3-5 条,直到入职。
+任务已直接嵌入每日计划，无需单独挑选。在对应 Day 的 `0{week}-week*.md` 中查找 `[jobs]` 标记即可。
+
+| 任务 | 嵌入位置 | 触发 Day |
+|---|---|---|
+| T-001 (vLLM 冷启动) | 02-week1.md Day 6 | Day 6 |
+| T-002 (bench TTFT vs TPS) | 02-week1.md Day 6 | Day 6 |
+| T-003 (gpu-memory 调优) | 02-week1.md Day 6 | Day 6 |
+| T-004 (prefix caching 对比) | 03-week2.md Day 11 | Day 11 |
+| T-005 (Nsight profiling) | 03-week2.md Day 11 | Day 11 |
+| T-010 (MTP 投机解码) | 04-week3.md Day 20 | Day 20 |
+| T-015 (Prometheus/Grafana) | 05-week4.md Day 26 | Day 26 |
+| T-041 (故意 OOM 复盘) | 03-week2.md Day 13 | Day 13 |
 
 ---
 
