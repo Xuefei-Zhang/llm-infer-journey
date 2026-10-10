@@ -6,7 +6,7 @@
 >
 > **环境**：本地 PRO 6000 96GB + vLLM v0.21.0 (Day 1 已装)。源码阅读参考：`~/3rd/llm_inference/vllm`（已 clone，用 `git checkout v0.21.0` 对齐生产版本）。
 >
-> **每日学习流程**：① 读今日面试题 → ② 去 ~/3rd/llm_inference/vllm 找对应源码（Day 8 先 clone） → ③ 回答面试题 → ④ 动手做实验/部署 → ⑤ AI 反向检查 → ⑥ 写每日笔记（progress.md ≤30 行）
+> **每日学习流程**：① 读今日面试题 → ② 去 ~/3rd/llm_inference/vllm 找对应源码（已 clone，Day 8 `git checkout v0.21.0` 即可） → ③ 回答面试题 → ④ 动手做实验/部署 → ⑤ AI 反向检查 → ⑥ 写每日笔记（progress.md ≤30 行）
 
 ---
 

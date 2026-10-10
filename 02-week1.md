@@ -4,7 +4,7 @@
 >
 > **环境**：本地 PRO 6000 Blackwell 96GB + Ubuntu 24.04 + CUDA 13.2（Day 0 已就绪）。
 >
-> 📌 **2026-10-10 re-baseline**：计划原定 2026-05-07 启动，已推迟，日期重排为 Day 1=2026-10-10 ~ Day 30=2026-11-08。当前环境已提前就绪：生产 vLLM v0.21.0 @ `~/deploy/vllm-prod`，主力模型 `~/models/Qwen3.8-27B-FP8`（9070 端口），Day 5/6 的部署+benchmark 已于 2026-08-26 提前完成（数据见 `~/deploy/vllm-profiling/`）。源码阅读参考：`~/3rd/llm_inference/vllm`（git clone，含 v0.21.0 tag）。
+> 📌 **2026-10-10 re-baseline**：计划原定 2026-05-07 启动，已推迟，日期重排为 Day 1=2026-10-10 ~ Day 30=2026-11-08。当前环境已提前就绪：生产 vLLM v0.21.0 @ `~/deploy/vllm-prod`，主力模型 `~/models/Qwen3.8-27B-FP8`（9070 端口）。Day 6 的部署+benchmark 已有 2026-08-26 实战数据（`~/deploy/vllm-profiling/`），但 Day 1-5 的 CUDA kernel / 公式推导仍需打卡。源码阅读参考：`~/3rd/llm_inference/vllm`（git clone，含 v0.21.0 tag）。
 >
 > **每日产出**：commit 到自己的 GitHub repo `llm-infer-journey/week1/dayN/`
 >
