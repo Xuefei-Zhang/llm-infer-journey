@@ -50,7 +50,7 @@ graph TD
 ```
 
 **checklist：**
-- [ ] `nvidia-smi` 显示 PRO 6000 Blackwell 96GB / Driver 595.91（⚠️ 若报 Driver/library version mismatch，先重启对齐内核模块，见 progress.md Re-baseline 条目）
+- [ ] `nvidia-smi` 显示 PRO 6000 Blackwell 96GB / Driver 595.91（⚠️ 当前会报 Driver/library version mismatch：NVML 用户态库 595.91 vs 内核模块 595.71。**不阻塞**——CUDA 计算栈实测正常，Day 1 可继续；要修监控工具稍后重启即可）
 - [ ] `nvcc -V` 显示 CUDA 13.2
 - [ ] `python -c "import torch; print(torch.cuda.get_device_capability())"` → `(12, 0)` (sm_120)
 - [ ] vLLM 已装 → 现为 v0.21.0（`~/deploy/vllm-prod/.venv`）；如需独立学习 venv：`uv venv --python 3.12 && uv pip install "vllm==0.21.0"`

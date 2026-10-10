@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Infer Journey — 项目分析报告</title>
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --border: #30363d;
+    --text: #c9d1d9; --text-dim: #8b949e; --accent: #58a6ff;
+    --green: #3fb950; --yellow: #d29922; --red: #f85149; --purple: #bc8cff;
+    --cyan: #39d2c0;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+         background: var(--bg); color: var(--text); line-height: 1.7; padding: 2rem 1rem; }
+  .container { max-width: 960px; margin: 0 auto; }
+
+  h1 { font-size: 2rem; color: #fff; border-bottom: 2px solid var(--accent); padding-bottom: .5rem; margin-bottom: .5rem; }
+  h2 { font-size: 1.4rem; color: #fff; border-left: 4px solid var(--accent); padding-left: .75rem; margin: 2rem 0 1rem; }
+  h3 { font-size: 1.1rem; color: var(--accent); margin: 1.5rem 0 .5rem; }
+  h4 { font-size: 1rem; color: var(--purple); margin: 1rem 0 .3rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: #1f2428; padding: .15em .4em; border-radius: 4px; font-size: .9em; color: var(--cyan); }
+  pre { background: #1f2428; padding: 1rem; border-radius: 6px; overflow-x: auto; margin: .5rem 0 1rem; }
+  pre code { background: none; color: var(--text); }
+  table { width: 100%; border-collapse: collapse; margin: .75rem 0 1.5rem; font-size: .9rem; }
+  th { background: var(--surface); color: var(--accent); text-align: left; padding: .5rem .75rem; border: 1px solid var(--border); }
+  td { padding: .4rem .75rem; border: 1px solid var(--border); }
+  tr:hover td { background: #1c2128; }
+
+  .badge { display: inline-block; padding: .15em .5em; border-radius: 12px; font-size: .8em; font-weight: 600; }
+  .badge-green { background: #122d1a; color: var(--green); border: 1px solid #238636; }
+  .badge-yellow { background: #2a2000; color: var(--yellow); border: 1px solid #9e6a03; }
+  .badge-red { background: #2d0f0f; color: var(--red); border: 1px solid #da3633; }
+  .badge-blue { background: #0c2d6b; color: var(--accent); border: 1px solid #1f6feb; }
+  .badge-purple { background: #1a1033; color: var(--purple); border: 1px solid #8957e5; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin: .75rem 0; }
+  .card.highlight { border-color: var(--green); background: #0d1f17; }
+  .card.warn { border-color: var(--yellow); background: #1a1505; }
+  .card.danger { border-color: var(--red); background: #1f0d0d; }
+
+  .status-icon { font-size: 1.2em; margin-right: .25rem; }
+
+  .timeline { position: relative; padding-left: 2rem; margin: 1rem 0; }
+  .timeline::before { content: ''; position: absolute; left: .65rem; top: 0; bottom: 0; width: 2px; background: var(--border); }
+  .timeline-item { position: relative; margin-bottom: 1rem; }
+  .timeline-item::before { content: ''; position: absolute; left: -1.65rem; top: .45rem; width: 10px; height: 10px;
+                             border-radius: 50%; background: var(--border); }
+  .timeline-item.done::before { background: var(--green); }
+  .timeline-item.active::before { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+  .timeline-item.pending::before { background: var(--text-dim); }
+
+  .footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--text-dim); font-size: .85rem; text-align: center; }
+
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .75rem; margin: 1rem 0; }
+  .summary-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; text-align: center; }
+  .summary-item .num { font-size: 1.8rem; font-weight: 700; }
+  .summary-item .label { font-size: .85rem; color: var(--text-dim); }
+
+  .toc { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.5rem; margin: 1rem 0 2rem; }
+  .toc h3 { margin: 0 0 .5rem; }
+  .toc ul { list-style: none; padding: 0; }
+  .toc li { padding: .2rem 0; }
+  .toc li::before { content: "→ "; color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>📊 LLM Infer Journey — 项目分析报告</h1>
+<p style="color: var(--text-dim); margin-bottom: 1rem;">
+  生成时间: 2026-06-28 &nbsp;|&nbsp; 路径: <code>~/self/llm-infer-journey/</code> &nbsp;|&nbsp; 项目版本: v2.1.1
+</p>
+
+<div class="toc">
+  <h3>📑 目录</h3>
+  <ul>
+    <li><a href="#what">项目是什么 — 不是代码，是一份"课程"</a></li>
+    <li><a href="#overview">全局概览 — 30 天 240 小时</a></li>
+    <li><a href="#hardware">硬件环境</a></li>
+    <li><a href="#structure">文件结构与导航</a></li>
+    <li><a href="#coach">AI 教练模式 — COACH.md</a></li>
+    <li><a href="#setup">配置与启动 — 从零到 Day 1</a></li>
+    <li><a href="#daily">每日学习流程</a></li>
+    <li><a href="#coding-agent">本地 Coding Agent 部署</a></li>
+    <li><a href="#mini-vllm">Week 4: Mini-vLLM 项目</a></li>
+    <li><a href="#jobs">Jobs 实战任务体系</a></li>
+    <li><a href="#progress">当前进度</a></li>
+    <li><a href="#risks">风险与注意事项</a></li>
+    <li><a href="#workflow">推荐工作流 — AI 助手如何配合</a></li>
+  </ul>
+</div>
+
+<!-- =================== WHAT =================== -->
+<h2 id="what">一、项目是什么 — 不是代码，是一份"课程"</h2>
+
+<div class="card">
+  <p><strong>LLM Infer Journey</strong> 是一个 <span class="badge badge-purple">文档驱动型学习项目</span>，而非可运行的软件仓库。</p>
+  <p style="margin-top:.5rem">
+    它是一份详尽的 <strong>30 天转行课程</strong>：帮助一位拥有 7 年 Intel ISP/IPU 系统软件经验的工程师，
+    转型为国内头部大模型公司的 <strong>LLM 推理工程师</strong>（目标公司：字节 AML、Moonshot、DeepSeek、MiniMax 等）。
+  </p>
+  <p style="margin-top:.5rem">
+    产出目标：3 个 GitHub 项目 + 4 篇技术博客 + 1 个 vLLM 开源 PR + 一个本地 Coding Agent 部署。
+  </p>
+</div>
+
+<p><strong>关键认知：这个仓库里没有 <code>src/</code>、<code>tests/</code>、<code>pyproject.toml</code> 或 <code>Makefile</code>。
+所有代码产出都在 30 天学习过程中逐步创建。</strong></p>
+
+<!-- =================== OVERVIEW =================== -->
+<h2 id="overview">二、全局概览 — 30 天 240 小时</h2>
+
+<div class="summary-grid">
+  <div class="summary-item">
+    <div class="num" style="color: var(--accent);">30</div>
+    <div class="label">天 (8h/天)</div>
+  </div>
+  <div class="summary-item">
+    <div class="num" style="color: var(--green);">240</div>
+    <div class="label">总学时 (小时)</div>
+  </div>
+  <div class="summary-item">
+    <div class="num" style="color: var(--yellow);">3</div>
+    <div class="label">项目产出</div>
+  </div>
+  <div class="summary-item">
+    <div class="num" style="color: var(--purple);">4</div>
+    <div class="label">技术博客</div>
+  </div>
+  <div class="summary-item">
+    <div class="num" style="color: var(--cyan);">29</div>
+    <div class="label">jobs 实战任务</div>
+  </div>
+  <div class="summary-item">
+    <div class="num" style="color: var(--red);">10</div>
+    <div class="label">核心文档</div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>4 周路线图</h3>
+  <table>
+    <tr><th>周</th><th>时间段</th><th>主题</th><th>核心产出</th></tr>
+    <tr>
+      <td>Week 1</td><td>Day 1–7</td><td><span class="badge badge-blue">CUDA 基础 + LLM 推理原理</span></td>
+      <td>6 个 CUDA kernel（5 GEMM + 1 softmax）、博客 1、vLLM hello world</td>
+    </tr>
+    <tr>
+      <td>Week 2</td><td>Day 8–14</td><td><span class="badge badge-blue">vLLM 源码深读</span></td>
+      <td>10K 字架构笔记、1 个 vLLM PR、博客 2、DeepSeek V3 蒸馏模型</td>
+    </tr>
+    <tr>
+      <td>Week 3</td><td>Day 15–21</td><td><span class="badge badge-blue">Triton kernel + 量化 + 投机解码</span></td>
+      <td>5 个 Triton kernel、NVFP4 量化模型（HF 发布）、博客 3</td>
+    </tr>
+    <tr>
+      <td>Week 4</td><td>Day 22–30</td><td><span class="badge badge-blue">Mini-vLLM + 求职冲刺</span></td>
+      <td>从 0 搭建推理引擎、对标 vLLM 30-50%、简历 + 10+ 投递、博客 4</td>
+    </tr>
+  </table>
+</div>
+
+<!-- =================== HARDWARE =================== -->
+<h2 id="hardware">三、硬件环境</h2>
+
+<div class="card highlight">
+  <table>
+    <tr><th>组件</th><th>规格</th><th>注意事项</th></tr>
+    <tr>
+      <td>GPU</td><td>RTX PRO 6000 Blackwell 96GB</td>
+      <td><code>sm_120</code>（非 sm_100）；无 tcgen05/TMEM；cubin 不互通；1792 GB/s 带宽</td>
+    </tr>
+    <tr>
+      <td>CPU</td><td>Intel Core Ultra 9 285K</td><td>24 核</td>
+    </tr>
+    <tr>
+      <td>系统内存</td><td>~30GB DDR5 ⚠️</td><td>偏紧；建议升级到 64GB+ 再跑 batch>16 的 benchmark</td>
+    </tr>
+    <tr>
+      <td>OS</td><td>Ubuntu 24.04 LTS</td><td></td>
+    </tr>
+    <tr>
+      <td>CUDA</td><td>13.2</td><td>Driver 595.58.03</td>
+    </tr>
+    <tr>
+      <td>主力模型</td><td>Qwen3.6-27B-FP8</td>
+      <td>Hybrid: 16 层 full-attention + 48 层 linear-attention (KV O(1))</td>
+    </tr>
+    <tr>
+      <td>备用</td><td>Mac mini M4</td><td>端侧 MLX 实验</td>
+    </tr>
+  </table>
+</div>
+
+<!-- =================== STRUCTURE =================== -->
+<h2 id="structure">四、文件结构与导航</h2>
+
+<div class="card">
+<pre><code>llm-infer-journey/
+├── README.md               # 30 天计划总览（导航 + 路线图）
+├── AGENTS.md               # AI 助手入口 — 任何工具进入此仓库从这里开始
+├── COACH.md                # AI 行为约束 — 教练模式、7 条铁律、L1-L4 介入深度
+├── CLAUDE.md               # 轻量跳转 → 读 AGENTS.md
+├── progress.md             # 每日进度打卡（每天 ≤30 行）
+│
+├── 01-hardware.md          # 硬件采购 + 验证记录（Day 0）
+├── 02-week1.md             # CUDA 基础 + LLM 推理原理（Day 1-7）
+├── 03-week2.md             # vLLM 源码深读 + MLA + FA4（Day 8-14）
+├── 04-week3.md             # Triton kernel + 量化 + 投机解码（Day 15-21）
+├── 05-week4.md             # Mini-vLLM 项目 + 求职冲刺（Day 22-30）
+├── 06-mini-vllm-design.md  # Mini-vLLM 架构设计 + nano-vllm 模块对照表
+├── 07-resources.md         # 完整资源清单（论文/书/博客/课程）
+├── 08-job-strategy.md      # 求职策略：简历/投递/面试 30 题 FAQ
+├── 09-local-coding-agent.md # 本地 Coding Agent 部署（替代 Copilot）
+│
+├── jobs/                   # 实战任务体系（模拟入职后 backlog）
+│   ├── README.md
+│   ├── jobs_taxonomy.md    # 15 个工作域定义 + 公司映射
+│   ├── jobs_backlog.md     # 29 条任务（L1/L2/L3），已嵌入每日计划
+│   └── postmortems/        # 事故复盘模板
+│
+├── week1/                  # Week 1 代码产出目录（待创建）
+└── mini-vllm/              # Week 4 项目代码（待创建）</code></pre>
+</div>
+
+<h3>参考仓库（STUDY，NOT COPY）</h3>
+<div class="card">
+  <table>
+    <tr><th>仓库</th><th>路径</th><th>规模</th><th>用途</th></tr>
+    <tr>
+      <td>vLLM v0.20.1</td><td><code>~/3rd/vllm</code></td>
+      <td>100K+ 行</td><td>生产级参考 — 架构、API 设计、调度器实现</td>
+    </tr>
+    <tr>
+      <td>nano-vllm</td><td><code>~/3rd/nano-vllm</code></td>
+      <td>~1,200 行 (19 个 .py)</td>
+      <td>教学级参考 — 编码骨架、模块拆分对照</td>
+    </tr>
+  </table>
+</div>
+
+<!-- =================== COACH =================== -->
+<h2 id="coach">五、AI 教练模式 — COACH.md</h2>
+
+<div class="card">
+  <p>这个项目为 AI 助手定义了严格的 <strong>教练 + 助教</strong> 角色，而不是代写工具。</p>
+</div>
+
+<h3>4 级介入深度</h3>
+<table>
+  <tr><th>级别</th><th>AI 做什么</th><th>使用场景</th></tr>
+  <tr><td><span class="badge badge-green">L1</span></td><td>只给提示和方向</td><td>做新东西时（默认）</td></tr>
+  <tr><td><span class="badge badge-blue">L2</span></td><td>给伪代码 + 用户实现</td><td>理解到位后的编码（推荐默认）</td></tr>
+  <tr><td><span class="badge badge-yellow">L3</span></td><td>给完整代码 + 用户逐行 review</td><td>用户说"直接看代码"</td></tr>
+  <tr><td><span class="badge badge-red">L4</span></td><td>AI 写完全部代码</td><td><strong>仅限用户说"直接写"或"赶时间"</strong></td></tr>
+</table>
+
+<h3>7 条铁律（摘要）</h3>
+<ol style="padding-left: 1.5rem; margin: .5rem 0 1rem;">
+  <li><strong>先问"想学什么"</strong> — 反问 3 件事：学习目标 / 当前理解 / 介入深度</li>
+  <li><strong>默认 L1-L2</strong> — 不主动写完整代码</li>
+  <li><strong>先 Why 再 How</strong> — 不直接丢代码</li>
+  <li><strong>费曼技巧</strong> — 每 checkpoint 出 2-3 道口试题反向验证</li>
+  <li><strong>类比已有知识</strong> — warp SIMD ≈ NEON，PagedAttention ≈ MMU 页表</li>
+  <li><strong>诚实标注知识边界</strong> — 2025 H2 后内容必须 WebFetch 查最新</li>
+  <li><strong>会话结束更新 progress.md</strong> — 主动提议，用户同意才写</li>
+</ol>
+
+<h3>每日固定流程</h3>
+<ol style="padding-left: 1.5rem; margin: .5rem 0;">
+  <li>读当日面试题 → 明确要掌握的概念</li>
+  <li>读参考代码 → <code>~/3rd/vllm</code> 或 <code>~/3rd/nano-vllm</code></li>
+  <li>回答面试题 → 用户用自己的话答，AI 纠正</li>
+  <li>手工作业 → 理解到位后才 coding</li>
+  <li>费曼检查 → AI 出 2-3 道口试题</li>
+  <li>写每日笔记 → ≤30 行写入 <code>progress.md</code></li>
+</ol>
+
+<!-- =================== SETUP =================== -->
+<h2 id="setup">六、配置与启动 — 从零到 Day 1</h2>
+
+<h3>前置条件</h3>
+<div class="card">
+  <p>硬件已到位（Day 0），以下是软件环境初始化步骤：</p>
+</div>
+
+<pre><code># === Day 0 待办（Day 1 之前必须完成）===
+
+# 1. 下载 FP8 主力模型
+modelscope download --model Qwen/Qwen3.6-27B-FP8 --local_dir ~/models/Qwen3.6-27B-FP8
+
+# 2. 创建 venv 并安装依赖
+uv venv --python 3.12 && source .venv/bin/activate
+uv pip install "vllm==0.20.1"
+uv pip install torch triton
+
+# 3. 安装性能分析工具
+sudo apt install nsight-systems nsight-compute
+
+# 4. (可选) clone 参考仓库
+git clone https://github.com/vllm-project/vllm ~/3rd/vllm
+cd ~/3rd/vllm && git checkout v0.20.1
+
+# 5. (可选) clone nano-vllm
+git clone <nano-vllm-repo> ~/3rd/nano-vllm
+
+# 6. FlashAttention v4 (Blackwell 专用) — Week 3 才需要
+uv pip install "flash-attn-4[cu13]"
+
+# 7. 初始化 GitHub repo
+git init llm-infer-journey
+# 推送到你的 GitHub 仓库</code></pre>
+
+<h3>vLLM 首次部署 (Day 6)</h3>
+<pre><code># 启动 vLLM 服务
+vllm serve ~/models/Qwen3.6-27B-FP8 \
+  --served-model-name Qwen3.6-27B-FP8 \
+  --max-model-len 65536 \
+  --gpu-memory-utilization 0.9 \
+  --enable-prefix-caching \
+  --kv-cache-dtype auto
+
+# 客户端测试
+curl http://localhost:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "Qwen3.6-27B-FP8",
+    "messages": [{"role": "user", "content": "解释 PagedAttention"}]
+  }'</code></pre>
+
+<h3>Benchmark 工具链 (Day 6)</h3>
+<table>
+  <tr><th>工具</th><th>命令</th><th>用途</th></tr>
+  <tr>
+    <td>vLLM 自带</td>
+    <td><code>python benchmarks/benchmark_serving.py --model Qwen3.6-27B-FP8 --dataset-name sharegpt --num-prompts 1000 --request-rate 10</code></td>
+    <td>吞吐量 / TTFT / TPOT</td>
+  </tr>
+  <tr>
+    <td>genai-perf</td>
+    <td><code>genai-perf profile -m Qwen3.6-27B-FP8 --service-kind openai --endpoint v1/chat/completions --concurrency 1 4 16 64</code></td>
+    <td>NVIDIA 官方压测</td>
+  </tr>
+  <tr>
+    <td>evalscope</td>
+    <td><code>evalscope perf --model Qwen3.6-27B-FP8 --url http://localhost:8000/v1/chat/completions --parallel 32</code></td>
+    <td>阿里综合评测</td>
+  </tr>
+</table>
+
+<h3>关键指标</h3>
+<table>
+  <tr><th>指标</th><th>全称</th><th>含义</th><th>工程意义</th></tr>
+  <tr><td><strong>TTFT</strong></td><td>Time To First Token</td><td>首 token 延迟</td><td>用户感知响应速度</td></tr>
+  <tr><td><strong>TPOT</strong></td><td>Time Per Output Token</td><td>每个输出 token 的时间</td><td>流式吐字速度</td></tr>
+  <tr><td><strong>ITL</strong></td><td>Inter-Token Latency</td><td>同 TPOT</td><td>同 TPOT</td></tr>
+  <tr><td><strong>Throughput</strong></td><td>tokens/second</td><td>系统总吞吐</td><td>服务成本核心</td></tr>
+  <tr><td><strong>Goodput</strong></td><td>—</td><td>满足 SLO 的吞吐</td><td>真实可用吞吐</td></tr>
+</table>
+
+<!-- =================== DAILY FLOW =================== -->
+<h2 id="daily">七、每日学习流程</h2>
+
+<div class="card highlight">
+  <p>每天严格按照以下顺序执行，<strong>不要让理解没到位的用户写代码</strong>：</p>
+</div>
+
+<ol style="padding-left: 1.5rem; margin: .5rem 0 1rem;">
+  <li><strong>读 <code>progress.md</code> 最新条目</strong> → 确认今天是 Day 几、上次进度</li>
+  <li><strong>打开当天 <code>day-N.md</code></strong> → 先看 <code>🎯 今日面试题</code></li>
+  <li><strong>用户用自己的话回答面试题</strong> → AI 纠正/追问</li>
+  <li><strong>读参考代码</strong> → 去 <code>~/3rd/vllm</code> 或 <code>~/3rd/nano-vllm</code> 找对应实现</li>
+  <li><strong>动手 coding/experiment</strong> → 按 L1-L4 模式由 AI 辅助</li>
+  <li><strong>费曼检查</strong> → AI 出 2-3 道口试题验证</li>
+  <li><strong>写入 <code>progress.md</code></strong> → ≤30 行记录完成项/卡点/明日计划/aha moment</li>
+</ol>
+
+<h3>Day 1 详细任务</h3>
+<div class="card">
+  <h4>上午 (4h): 环境校准 + 工具链验证</h4>
+  <ul style="padding-left: 1.5rem;">
+    <li>确认 <code>nvidia-smi</code> → PRO 6000 Blackwell 96GB / Driver 595.58.03</li>
+    <li>确认 <code>nvcc -V</code> → CUDA 13.2</li>
+    <li>Python 验证 <code>torch.cuda.get_device_capability()</code> → (12, 0)</li>
+    <li>创建 venv + 安装依赖</li>
+  </ul>
+  <h4>下午 (4h): 第一个 CUDA Kernel — Vector Add</h4>
+  <pre><code>// vec_add.cu
+__global__ void vec_add(const float* a, const float* b, float* c, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n) c[i] = a[i] + b[i];
+}
+// 关键学习：Grid/Block/Thread 三层结构、cudaMalloc/CudaMemcpy/cudaFree
+// warp = 32 线程同步执行</code></pre>
+  <h4>晚上 (1h): 阅读</h4>
+  <ul style="padding-left: 1.5rem;">
+    <li>📖 PMPP 第 4 版 第 1-3 章</li>
+    <li>🎥 GPU MODE Lecture 1（30 分钟入门）</li>
+  </ul>
+</div>
+
+<!-- =================== CODING AGENT =================== -->
+<h2 id="coding-agent">八、本地 Coding Agent 部署</h2>
+
+<div class="card">
+  <p>目标：用本地 RTX PRO 6000 + Qwen3.6-27B-FP8 跑 OpenCode / Cursor / Continue，<strong>替代 GitHub Copilot</strong>。</p>
+</div>
+
+<h3>一键启动脚本</h3>
+<pre><code># 保存为 ~/serve-coding.sh
+#!/usr/bin/env bash
+set -e
+exec vllm serve /home/xuefeiz2/models/Qwen3.6-27B-FP8 \
+    --host 0.0.0.0 --port 8000 \
+    --max-model-len 262144 \
+    --gpu-memory-utilization 0.92 \
+    --kv-cache-dtype fp8 \
+    --enable-prefix-caching \
+    --prefix-caching-hash-algo builtin \
+    --enable-chunked-prefill \
+    --max-num-seqs 8 \
+    --enable-auto-tool-choice \
+    --tool-call-parser hermes \
+    --served-model-name local-coder \
+    2>&1 | tee $HOME/logs/vllm/$(date +%Y%m%d-%H%M%S).log</code></pre>
+
+<h3>客户端配置</h3>
+<table>
+  <tr><th>客户端</th><th>配置</th></tr>
+  <tr>
+    <td>OpenCode</td>
+    <td><code>~/.opencode/config.json</code> → <code>baseURL: http://localhost:8000/v1</code>, model: <code>local-coder</code></td>
+  </tr>
+  <tr>
+    <td>Cursor</td>
+    <td>Settings → Models → Add Custom Model → OpenAI Compatible → <code>http://localhost:8000/v1</code></td>
+  </tr>
+  <tr>
+    <td>Continue</td>
+    <td><code>.continue/config.yaml</code> → <code>apiBase: http://localhost:8000/v1</code></td>
+  </tr>
+  <tr>
+    <td>Claude Code</td>
+    <td>LiteLLM proxy: <code>litellm --model openai/local-coder --api_base http://localhost:8000/v1 --port 4000</code></td>
+  </tr>
+</table>
+
+<h3>性能杀手锏</h3>
+<table>
+  <tr><th>优化项</th><th>效果</th></tr>
+  <tr><td>Prefix Caching</td><td>TTFT 从 1500ms → 80ms（18× 加速），system prompt 命中率 90%+</td></tr>
+  <tr><td>MTP 投机解码</td><td><code>--speculative-config '{"method": "mtp", "num_speculative_tokens": 3}'</code>，Decode 2-3×</td></tr>
+  <tr><td>FP8 KV Cache</td><td>KV 容量翻倍，256K context 仅 ~8.4 GB</td></tr>
+  <tr><td>CUDA Graph</td><td>Decode latency -15%</td></tr>
+</table>
+
+<!-- =================== MINI VLLM =================== -->
+<h2 id="mini-vllm">九、Week 4: Mini-vLLM 项目</h2>
+
+<div class="card highlight">
+  <p>这是整个 30 天计划中 <strong>简历最重的硬通货</strong> — 从 0 搭建一个可跑的 LLM 推理引擎。</p>
+</div>
+
+<h3>目标</h3>
+<p>5 天造一个引擎，达到 vLLM v0.20.1 的 <strong>30-50% 性能</strong>，覆盖所有简历关键词：PagedAttention / Continuous Batching / MLA / FlashAttention v4 / FP8 / Triton。</p>
+
+<h3>目录结构</h3>
+<pre><code>mini-vllm/
+├── pyproject.toml
+├── mini_vllm/
+│   ├── engine/        # LLMEngine, AsyncEngine, Request 数据类
+│   ├── scheduler/     # Continuous Batching 调度, token budget
+│   ├── kv_cache/      # KV 块分配, block pool, prefix caching
+│   ├── attention/     # FlashAttention v4, Triton paged attention, MLA
+│   ├── model/         # 权重加载 (mmap safetensors), Qwen forward, Triton fused layers
+│   ├── sampler/       # top-k/top-p/temperature
+│   └── server/        # FastAPI OpenAI 兼容 endpoint
+├── benchmarks/        # vs vLLM 吞吐量/延迟对比
+├── tests/
+└── examples/</code></pre>
+
+<h3>模块对照：mini-vllm ↔ nano-vllm ↔ vLLM</h3>
+<p>设计文档 <code>06-mini-vllm-design.md §十二</code> 提供了详细的三向对照表，每个 mini-vllm 模块都有对应的 nano-vllm 参考实现和 vLLM 生产级实现作为对照。</p>
+
+<!-- =================== JOBS =================== -->
+<h2 id="jobs">十、Jobs 实战任务体系</h2>
+
+<div class="card">
+  <p><code>jobs/</code> 模拟真实大厂 LLM 推理工程师的 <strong>日常 backlog</strong>，让你提前进入"工程师在干什么"的语境。</p>
+</div>
+
+<h3>15 个工作域</h3>
+<table>
+  <tr><th>#</th><th>工作域</th><th>公司频次</th><th>对应周</th></tr>
+  <tr><td>1</td><td>模型部署与服务化 (Serving)</td><td>★★★★★</td><td>Week 2</td></tr>
+  <tr><td>2</td><td>推理性能优化 (Latency/Throughput)</td><td>★★★★★</td><td>Week 2-3</td></tr>
+  <tr><td>3</td><td>量化与压缩 (Quant/Compression)</td><td>★★★★★</td><td>Week 3</td></tr>
+  <tr><td>4</td><td>Kernel 开发 (CUDA/Triton/CUTLASS)</td><td>★★★★</td><td>Week 1-3</td></tr>
+  <tr><td>5</td><td>多机分布式推理 (TP/PP/EP/SP)</td><td>★★★★★</td><td>Week 3+</td></tr>
+  <tr><td>6</td><td>P/D 分离 & KV 路由</td><td>★★★★</td><td>Week 3+</td></tr>
+  <tr><td>7</td><td>投机解码 (EAGLE / MTP)</td><td>★★★★</td><td>Week 3</td></tr>
+  <tr><td>8</td><td>长 Context & KV cache 管理</td><td>★★★★</td><td>Week 3</td></tr>
+  <tr><td>9</td><td>MoE 推理优化</td><td>★★★★</td><td>Week 3+</td></tr>
+  <tr><td>10</td><td>多模态推理 (VLM)</td><td>★★★</td><td>Week 5+</td></tr>
+  <tr><td>11</td><td>框架与编译工具链</td><td>★★★★</td><td>Week 2-4</td></tr>
+  <tr><td>12</td><td>监控、告警、SLO、成本</td><td>★★★★</td><td>Week 5+</td></tr>
+  <tr><td>13</td><td>On-Call & 故障排查</td><td>★★★★★</td><td>Week 5+</td></tr>
+  <tr><td>14</td><td>论文跟踪与原型实现</td><td>★★★</td><td>Week 5+</td></tr>
+  <tr><td>15</td><td>跨团队协作</td><td>★★★★★</td><td>开源 PR 时积累</td></tr>
+</table>
+
+<h3>任务难度分布</h3>
+<table>
+  <tr><th>难度</th><th>估时</th><th>总数</th><th>特点</th></tr>
+  <tr><td><span class="badge badge-green">L1</span></td><td>1-3h</td><td>8 条</td><td>纯调试/配置，产出 1 条 progress 记录</td></tr>
+  <tr><td><span class="badge badge-blue">L2</span></td><td>4-8h</td><td>17 条</td><td>跨 1-2 工具，需 1 张 profiling 图 + 1 个数据表</td></tr>
+  <tr><td><span class="badge badge-purple">L3</span></td><td>1-3 天</td><td>4 条</td><td>跨 3+ 工具，需博客 + benchmark + 源码改动</td></tr>
+</table>
+
+<h3>任务嵌入关系</h3>
+<table>
+  <tr><th>任务</th><th>嵌入位置</th><th>触发</th></tr>
+  <tr><td>T-001 (vLLM 冷启动)</td><td>02-week1.md Day 6</td><td>Day 6</td></tr>
+  <tr><td>T-002 (bench TTFT vs TPS)</td><td>02-week1.md Day 6</td><td>Day 6</td></tr>
+  <tr><td>T-003 (gpu-memory 调优)</td><td>02-week1.md Day 6</td><td>Day 6</td></tr>
+  <tr><td>T-004 (prefix caching 对比)</td><td>03-week2.md Day 11</td><td>Day 11</td></tr>
+  <tr><td>T-005 (Nsight profiling)</td><td>03-week2.md Day 11</td><td>Day 11</td></tr>
+  <tr><td>T-010 (MTP 投机解码)</td><td>04-week3.md Day 20</td><td>Day 20</td></tr>
+  <tr><td>T-041 (故意 OOM 复盘)</td><td>03-week2.md Day 13</td><td>Day 13</td></tr>
+</table>
+
+<!-- =================== PROGRESS =================== -->
+<h2 id="progress">十一、当前进度</h2>
+
+<div class="timeline">
+  <div class="timeline-item done">
+    <strong>Day 0 - 2026-05-06</strong> <span class="badge badge-green">✅ 已完成</span>
+    <ul style="padding-left: 1.5rem; margin-top: .3rem;">
+      <li>30 天计划文档体系（10 个文件）完成</li>
+      <li>仓库初始化</li>
+      <li>硬件组装完成（Intel Ultra 9 + PRO 6000 96GB）</li>
+      <li>Ubuntu 24.04 + Driver 595.58.03 + CUDA 13.2 验证通过</li>
+      <li>Qwen3.6-27B bf16 VL 模型已开始下载</li>
+      <li>文档 v2.1 改写：校准为本地 96GB 单卡环境</li>
+    </ul>
+  </div>
+  <div class="timeline-item active">
+    <strong>Day 1 - 2026-05-07</strong> <span class="badge badge-yellow">⏳ 待开始</span>
+    <ul style="padding-left: 1.5rem; margin-top: .3rem;">
+      <li>面试题: C.23 (Warp divergence)</li>
+      <li>Day 0 待办: FP8 模型下载 / vLLM 0.20.1 安装 / Nsight 安装</li>
+    </ul>
+  </div>
+  <div class="timeline-item pending">
+    <strong>Day 2-30</strong> <span class="badge" style="background:#222;color:#666;border:1px solid #444;">⏸ 未开始</span>
+  </div>
+</div>
+
+<p style="color: var(--text-dim); margin-top: .5rem;">
+  Jobs 任务完成: <strong>0 / 29</strong> &nbsp;|&nbsp; 博客发布: <strong>0 / 4</strong> &nbsp;|&nbsp; vLLM PR: <strong>0 / 1</strong>
+</p>
+
+<!-- =================== RISKS =================== -->
+<h2 id="risks">十二、风险与注意事项</h2>
+
+<div class="card warn">
+  <h4>⚠️ 系统内存偏紧</h4>
+  <p>当前 ~30GB DDR5。加载 27B 模型时 host 端峰值 ≈ 27GB，Week 4 mini-vLLM 测 batch>16 会 OOM。<strong>建议 Week 1 前升级到 64GB+。</strong></p>
+</div>
+
+<div class="card warn">
+  <h4>⚠️ Blackwell sm_120 兼容性</h4>
+  <p>vLLM quant 表中 sm_120 尚无独立列。FP8 W8A8 / NVFP4 实际能否跑、性能多少 → 需 Week 3 Day 17-18 自验。sm_120 走 <code>mma.sync + WGMMA</code>，与 sm_100 的 <code>tcgen05/TMEM</code> 不同。</p>
+</div>
+
+<div class="card warn">
+  <h4>⚠️ 绝对不要碰 vLLM 进程</h4>
+  <p>本机所有 agent（Claude Code、Codex、Pi 等）全部依赖同一套 vLLM 部署作为 LLM 后端。<strong>禁止 start/stop/restart/kill 任何 vLLM 进程。</strong></p>
+</div>
+
+<div class="card">
+  <h4>AI 助手行为约束</h4>
+  <ul style="padding-left: 1.5rem; margin-top: .3rem;">
+    <li>AI <strong>不主动 commit/push</strong>，除非用户明确要求</li>
+    <li>AI <strong>不动计划文档</strong>（01-09 系列、README.md、COACH.md、AGENTS.md）</li>
+    <li>AI <strong>不编造</strong>论文标题、arxiv 编号、API 名称、性能数据</li>
+    <li>AI <strong>不引入计划之外的新技术</strong></li>
+    <li>AI 必须 <strong>WebFetch</strong> 查 2025 H2+ 内容（vLLM v0.20+ / FA4 / NVFP4）</li>
+  </ul>
+</div>
+
+<!-- =================== WORKFLOW =================== -->
+<h2 id="workflow">十三、推荐工作流 — AI 助手如何配合</h2>
+
+<div class="card highlight">
+  <h3>每次会话开始</h3>
+  <ol style="padding-left: 1.5rem;">
+    <li>读 <code>COACH.md</code>（行为约束）</li>
+    <li>读 <code>progress.md</code> 最新条目，确认当前 Day</li>
+    <li>如果进入新 Week，读对应 <code>0X-weekN.md</code></li>
+    <li>默认 L1-L2 模式，除非用户说 L4</li>
+    <li>涉及 2025 H2+ 内容时准备好调 WebFetch</li>
+  </ol>
+</div>
+
+<h3>典型交互模式</h3>
+<table>
+  <tr><th>场景</th><th>AI 应该</th><th>AI 不应该</th></tr>
+  <tr>
+    <td>"Day 3 开始 GEMM v3"</td>
+    <td>先看面试题 → 理解原理 → 反问 3 件事 → 给 skeleton 用户填</td>
+    <td>直接贴完整代码</td>
+  </tr>
+  <tr>
+    <td>"paged_attention 输出 NaN"</td>
+    <td>3 步排查思路 → 让用户先验证 → 一起定位</td>
+    <td>直接改代码</td>
+  </tr>
+  <tr>
+    <td>"L4 — 帮我写 FastAPI 包装"</td>
+    <td>直接写完 + 附关键设计点说明</td>
+    <td>拒绝或过度解释</td>
+  </tr>
+  <tr>
+    <td>"MLA 是什么？"</td>
+    <td>先反问 MHA 的 KV cache 公式 → 引导推导</td>
+    <td>直接甩 500 字定义</td>
+  </tr>
+</table>
+
+<h3>每周推荐节奏</h3>
+<table>
+  <tr><th>阶段</th><th>主计划</th><th>jobs/ 用法</th></tr>
+  <tr><td>Day 1-7</td><td>课程紧，8h 满载</td><td>不碰 jobs/</td></tr>
+  <tr><td>Day 8-21</td><td>课程 + 实战</td><td>周末选 1 条 L1-L2 热身</td></tr>
+  <tr><td>Day 22-28</td><td>Mini-vLLM 项目</td><td>不碰，集中精力</td></tr>
+  <tr><td>Day 29-30</td><td>总结 + 投递</td><td>用 backlog 完成度回答面试题</td></tr>
+  <tr><td>Day 31+</td><td>持续实战</td><td>每周 3-5 条，持续做到入职</td></tr>
+</table>
+
+<div class="footer">
+  <p>分析报告基于 <code>~/self/llm-infer-journey/</code> 项目文档 v2.1.1 生成 &nbsp;|&nbsp; 项目由张雪飞创建 &nbsp;|&nbsp; Intel ISP → LLM Inference 30 天冲刺</p>
+</div>
+
+</div>
+</body>
+</html>

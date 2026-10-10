@@ -52,11 +52,12 @@ Day 1 原定 2026-05-07，实际 5 个月未启动。今日全面重调研环境
 - **NVFP4**：本地 `Qwen3.8-27B-NVFP4`（22GB，官方下载非自产）**已知故障：GPU hang / 系统 crash，未修复，暂不使用**；Day 17 改为“定位根因 + 自产对照”（自产需 bf16 源模型，本地暂无）
 - **已提前完成项**（8 月实战，非本计划产出但可回填）：Day 6 的部署+benchmark 已有实战数据（2026-08-26，TTFT ~32ms / ~50.8 tok/s，`~/deploy/vllm-profiling/`）；另有 vLLM 源码自编 16 个 .so、SGLang 对照部署、3.6 vs 3.8 对比分析。Day 5 公式部分（Roofline/显存口算）仍需打卡
 
-### 卡点（待处理）
-- **驱动 mismatch**：今日 09:15 apt 升级 nvidia 595.71.05→595.91.07（仅用户态），内核模块未换，`/var/run/reboot-required` 已标记。新起进程（nvidia-smi/vllm CLI）全挂，已加载 GPU 的生产服务不受影响。**待重启修复**（用户未拍板）
+### 卡点（部分，实测已降级为非阻塞）
+- **驱动 NVML mismatch**：今日 09:15 apt 升级 nvidia 用户态库 595.71.05→595.91.07，内核模块仍 595.71.05（`/var/run/reboot-required` 已标记）。**实测分界线**：❌ 只有走 NVML 的工具挂（`nvidia-smi`、vLLM CLI 平台探测）；✅ **CUDA 计算栈完全正常**（torch `cuda.is_available()=True`、nvcc 编译的 kernel 同步后正确返回、nsys 能出 trace）。**结论：Day 1 的 CUDA kernel 学习不受阻塞**，重启仅为让 `nvidia-smi` 监控工具恢复（可选，非必须；生产服务也不受影响）。
 
 ### 今日计划（Day 1 = 今天，2026-10-10 周六）
-- 重启修驱动（待用户确认）→ 环境校准 checklist（nvidia-smi / sm_120 / Nsight）
+- ~~重启修驱动~~ → **不必重启**：CUDA 计算栈实测正常，Day 1 直接开工（nvidia-smi 监控工具报 mismatch 无碍，要修可稍后重启）
+- 环境校准：`torch.cuda.get_device_capability()`=(12,0) ✅ 已验 / Nsight ✅ 已验 / nvcc 13.2 ✅ 已验
 - vec_add.cu 第一个 CUDA kernel + nsys
 - 面试题 Q23（C.23 Warp divergence）
 

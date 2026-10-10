@@ -165,7 +165,7 @@ mindmap
 - [x] FP8 主力模型已下载 → 现为 `~/models/Qwen3.8-27B-FP8`（29GB，生产使用）
 - [x] vLLM 已装 → 现为 v0.21.0（`~/deploy/vllm-prod/.venv`），生产 @ 9070 稳定运行
 - [x] Nsight Systems 已装（2025.6.3）
-- [ ] ⚠️ 驱动 mismatch 待重启：今日 09:15 apt 升级 595.71→595.91（仅用户态），`/var/run/reboot-required` 已标记，重启后 nvidia-smi/新起进程恢复（生产服务不受影响）
+- [ ] ⚠️ 驱动 NVML mismatch：今日 09:15 apt 升级 595.71→595.91（仅用户态）。**只影响 `nvidia-smi` 监控工具**（报 version mismatch），CUDA 计算栈（torch/nvcc kernel/nsys）实测正常，Day 1 不阻塞；要修监控工具重启即可
 - [ ] DDR5 内存 ~30GB 偏紧（Week 4 mini-vLLM 需 ≥64GB）
 
 **Day 1（2026-10-10 周六）：** 开始 [02-week1.md](./02-week1.md) 的 Day 1 任务（环境校准 + 第一个 CUDA kernel）

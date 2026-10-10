@@ -18,7 +18,7 @@
 | 内存 | DDR5 ~30GB（待升级到 ≥64GB） | ⚠️ Week 4 mini-vLLM 需要 |
 | 系统盘 | NVMe SSD | |
 | 系统 | Ubuntu 24.04 LTS | |
-| Driver | NVIDIA 595.91.07（2026-10 升级；内核模块仍为 595.71.05，需重启对齐，重启前 nvidia-smi 报 version mismatch，但已加载 GPU 的生产服务不受影响） |
+| Driver | NVIDIA 595.91.07 用户态 / 595.71.05 内核（2026-10 apt 只升了用户态） | `nvidia-smi` 报 NVML mismatch（仅监控工具挂），CUDA 计算栈正常；重启可对齐两者 |
 | CUDA | 13.2 | 通过 `nvcc -V` 验证 |
 | 备用 | Mac mini M4 | 端侧 MLX 实验 |
 

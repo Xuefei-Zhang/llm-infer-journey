@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Inference Project — Overview &amp; Model Deployment Analysis</title>
+<style>
+  :root { --bg: #0d1117; --fg: #c9d1d9; --accent: #58a6ff; --border: #30363d; --code-bg: #161b22; --green: #3fb950; --orange: #d29922; --red: #f85149; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--fg); line-height: 1.7; padding: 2rem; max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 2rem; color: #f0f6fc; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 1.5rem; }
+  h2 { font-size: 1.4rem; color: #f0f6fc; margin-top: 2.5rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3rem; }
+  h3 { font-size: 1.1rem; color: var(--accent); margin-top: 1.5rem; margin-bottom: 0.5rem; }
+  h4 { font-size: 0.95rem; color: var(--orange); margin-top: 1rem; margin-bottom: 0.3rem; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.9rem; }
+  th { background: var(--code-bg); color: var(--accent); text-align: left; padding: 0.5rem 0.75rem; border: 1px solid var(--border); font-weight: 600; }
+  td { padding: 0.45rem 0.75rem; border: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+  code, pre { font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace; }
+  code { background: var(--code-bg); padding: 0.15em 0.4em; border-radius: 3px; font-size: 0.88em; }
+  pre { background: var(--code-bg); padding: 1rem; border-radius: 6px; overflow-x: auto; margin: 1rem 0; }
+  pre code { background: none; padding: 0; }
+  ul, ol { margin: 0.5rem 0 1rem 1.5rem; }
+  li { margin: 0.25rem 0; }
+  .badge { display: inline-block; font-size: 0.75rem; padding: 0.1rem 0.5rem; border-radius: 99px; margin-left: 0.3rem; vertical-align: middle; }
+  .badge-ok { background: rgba(63,185,80,0.15); color: var(--green); border: 1px solid var(--green); }
+  .badge-warn { background: rgba(210,153,34,0.15); color: var(--orange); border: 1px solid var(--orange); }
+  .badge-bad { background: rgba(248,81,73,0.15); color: var(--red); border: 1px solid var(--red); }
+  .note { background: rgba(88,166,255,0.08); border-left: 3px solid var(--accent); padding: 0.75rem 1rem; margin: 1rem 0; border-radius: 0 6px 6px 0; }
+  .warn { background: rgba(210,153,34,0.08); border-left: 3px solid var(--orange); padding: 0.75rem 1rem; margin: 1rem 0; border-radius: 0 6px 6px 0; }
+  .comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 1.5rem 0; }
+  .comparison-card { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; }
+  .comparison-card h4 { margin-top: 0; }
+  .summary-box { background: rgba(63,185,80,0.06); border: 1px solid var(--green); border-radius: 8px; padding: 1rem 1.25rem; margin: 1.5rem 0; }
+  .summary-box h4 { color: var(--green); margin-top: 0; }
+  .toc { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.5rem; margin-bottom: 2rem; }
+  .toc h3 { color: #f0f6fc; margin-top: 0; }
+  .toc ul { margin: 0; list-style: none; padding-left: 0; }
+  .toc li { margin: 0.2rem 0; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<h1>LLM Inference Project — Overview &amp; Model Deployment Analysis</h1>
+
+<div class="toc">
+<h3>Table of Contents</h3>
+<ul>
+  <li><a href="#1-project-overview">1. Project Overview</a></li>
+  <li><a href="#2-env-skills">2. Installed Agent Skills</a></li>
+  <li><a href="#3-developer-workflow">3. Developer Workflow &amp; Configuration</a></li>
+  <li><a href="#4-env-limits">4. Environment &amp; Limitations (NEW)</a></li>
+  <li><a href="#5-deployment-comparison">5. Model Deployment: vLLM vs TensorRT-LLM (NEW)</a></li>
+</ul>
+</div>
+
+<!-- ============================================================ -->
+<!-- 1. PROJECT OVERVIEW                                          -->
+<!-- ============================================================ -->
+<h2 id="1-project-overview">1. Project Overview</h2>
+
+<p>This is a personal LLM inference engineering workstation. The user is transitioning from a 7-year career in Intel ISP/IPU system software to an LLM Inference Engineer role. The workstation is the primary training and development environment for large model deployment, kernel optimization, and inference framework research.</p>
+
+<h3>Key Directories</h3>
+<table>
+  <tr><th>Directory</th><th>Purpose</th></tr>
+  <tr><td><code>~/models/</code></td><td>Model weights — Qwen, DeepSeek, Gemma, Florence-2, etc.</td></tr>
+  <tr><td><code>~/deploy/vllm-prod/</code></td><td>Production vLLM deployment (systemd, proxy, monitoring)</td></tr>
+  <tr><td><code>~/3rd/llm_foundation/TensorRT-LLM/</code></td><td>NVIDIA TensorRT-LLM source (v1.3.0rc16)</td></tr>
+  <tr><td><code>~/self/llm-infer-journey/</code></td><td>30-day training plan + mini-vLLM project + learning records</td></tr>
+  <tr><td><code>~/3rd/vllm/</code></td><td>vLLM source study + notes</td></tr>
+  <tr><td><code>~/.claude/skills/</code></td><td>94+ installed Claude Code skills</td></tr>
+</table>
+
+<h3>Currently Running Services</h3>
+<table>
+  <tr><th>Service</th><th>Port</th><th>Details</th></tr>
+  <tr><td>vLLM Serve</td><td>9070</td><td>Qwen3.6-27B-FP8, TRITON_ATTN backend</td></tr>
+  <tr><td>llama-server (Ollama)</td><td>—</td><td>Running on GPU, ~28GB GPU memory</td></tr>
+  <tr><td>cc-switch / LiteLLM proxy</td><td>15721</td><td>Anthropic API → vLLM bridge</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- 2. INSTALLED AGENT SKILLS                                     -->
+<!-- ============================================================ -->
+<h2 id="2-env-skills">2. Installed Agent Skills</h2>
+
+<p>A total of <strong>94 skills</strong> are installed in <code>~/.claude/skills/</code>. They fall into these categories:</p>
+
+<h3>Core / Framework Skills</h3>
+<table>
+  <tr><th>Category</th><th>Skill Names</th></tr>
+  <tr><td>Claude Code</td><td>caveman, check, cli-hub-meta-skill, dev-team, gstack, health, think, write, read, plan-to-tickets, qa, review, tdd, write-html, write-a-skill, etc.</td></tr>
+  <tr><td>Oh-My-ClaudeCode</td><td>deep-dive, deepinit, huc, omc-doctor, remember, wiki, trace, verify, skill, skillify, self-improve, etc.</td></tr>
+  <tr><td>Firecrawl</td><td>firecrawl, firecrawl-agent, firecrawl-build-*, firecrawl-competitive-intel, firecrawl-crawl, firecrawl-dashboard-reporting, firecrawl-deep-research, firecrawl-lead-gen, firecrawl-map, firecrawl-monitor, firecrawl-qa, firecrawl-scrape, firecrawl-search, firecrawl-workflows, etc.</td></tr>
+  <tr><td>Graph / Knowledge</td><td>graphify, code2flow, codebase-design, codebase-viz, domain-modeling, ubiquitous-language, excalidraw-skill, decision-mapping</td></tr>
+  <tr><td>Code Quality</td><td>pr-autopilot, improve-codebase-architecture, triangulated-code-review, scaffold-exercises, setup-pre-commit, resolving-merge-conflicts, hunt</td></tr>
+  <tr><td>Research / Web</td><td>firecrawl-research-papers, firecrawl-knowledge-base, firecrawl-knowledge-ingest, firecrawl-parse, firecrawl-qa</td></tr>
+</table>
+
+<h3>Domain-Specific Skills</h3>
+<table>
+  <tr><th>Category</th><th>Skill Names</th></tr>
+  <tr><td>Design</td><td>design, design-an-interface, thedankoe, writing-beats, writing-fragments, writing-shape, edit-article</td></tr>
+  <tr><td>Learning</td><td>learn, learn-by-building, teach</td></tr>
+  <tr><td>Documentation</td><td>d2-docs, write-html, write-a-skill</td></tr>
+  <tr><td>Other</td><td>multi-llm-convergence, multi-llm-convergence-beta, migrate-to-shoehorn, handoff, grill-me, grill-with-docs, to-issues, to-prd, triage, zoom-out, prototype, implement, implement-full-spec</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- 3. DEVELOPER WORKFLOW & CONFIGURATION                          -->
+<!-- ============================================================ -->
+<h2 id="3-developer-workflow">3. Developer Workflow &amp; Configuration</h2>
+
+<h3>Development Tools</h3>
+<table>
+  <tr><th>Tool</th><th>Details</th></tr>
+  <tr><td>Language</td><td>Python 3.12.3, C/C++, CUDA</td></tr>
+  <tr><td>Package manager</td><td><code>uv</code> (v0.5.9) — <strong>NOT pip</strong></td></tr>
+  <tr><td>Python venv</td><td><code>~/.venv/</code> (global); project-specific in <code>~/deploy/vllm-prod/.venv/</code></td></tr>
+  <tr><td>Linter</td><td>ruff (for TensorRT-LLM); ruff check in this project</td></tr>
+  <tr><td>Test framework</td><td>pytest</td></tr>
+  <tr><td>Editor</td><td>nvim (LazyVim)</td></tr>
+  <tr><td>Shell</td><td>zsh (Oh My Zsh)</td></tr>
+  <tr><td>Node</td><td>nvm + Bun</td></tr>
+  <tr><td>Code search</td><td>CodeGraph (initialized in <code>~/linux/</code>)</td></tr>
+</table>
+
+<h3>Model Management</h3>
+<table>
+  <tr><th>Model</th><th>Format</th><th>Use</th></tr>
+  <tr><td><strong>Qwen3.6-27B-FP8</strong></td><td>FP8, safetensors</td><td>Primary production model (vLLM)</td></tr>
+  <tr><td>Qwen3.6-27B</td><td>Standard</td><td>Reference / comparison</td></tr>
+  <tr><td>Qwen3.6-27B-GGUF</td><td>GGUF</td><td>llama.cpp / Ollama</td></tr>
+  <tr><td>DeepSeek-R1-Distill-Qwen-32B</td><td>—</td><td>Reasoning model</td></tr>
+  <tr><td>Qwen3.5-9B</td><td>—</td><td>Faster prototyping</td></tr>
+  <tr><td>Qwen3.6-35B-A3B-AWQ</td><td>AWQ</td><td>4-bit quantized</td></tr>
+</table>
+
+<h3>LLM Serving Stack</h3>
+<pre><code>vLLM (0.21.0)
+  └── TRITON_ATTN (attention backend)
+  └── FP8 quantization
+  └── Chunked prefill + prefix caching
+  └── Custom Qwen3.6 chat template
+  └── async scheduling
+  │
+  ├── port 9070  ← direct API access
+  └── port 15721 ← cc-switch / LiteLLM proxy (Anthropic API bridge)
+</code></pre>
+
+<!-- ============================================================ -->
+<!-- 4. ENVIRONMENT & LIMITATIONS                                 -->
+<!-- ============================================================ -->
+<h2 id="4-env-limits">4. Environment &amp; Limitations</h2>
+
+<p>This section documents the specific constraints of the current hardware and software environment. Ignoring these will lead to compilation failures, silent runtime errors, or wasted time.</p>
+
+<h3>4.1 Hardware Specifications</h3>
+<table>
+  <tr><th>Component</th><th>Specification</th><th>Notes</th></tr>
+  <tr><td>CPU</td><td>Intel Core Ultra 9 285K (Arrow Lake)</td><td>24 cores / 32 threads</td></tr>
+  <tr><td>RAM</td><td>32 GB DDR5</td><td>~17 GB used at idle (vLLM + Ollama + OS)</td></tr>
+  <tr><td>GPU</td><td><strong>NVIDIA RTX PRO 6000 Blackwell</strong></td><td>96 GB VRAM, single card</td></tr>
+  <tr><td>CUDA</td><td><strong>13.2</strong></td><td>Driver 595.71.05</td></tr>
+  <tr><td>CUDA Arch</td><td><strong>sm_120</strong></td><td>Blackwell generation — <code>TORCH_CUDA_ARCH_LIST="12.0"</code></td></tr>
+  <tr><td>cuDNN</td><td>9.22 (compiled)</td><td></td></tr>
+  <tr><td>OS</td><td>Ubuntu 24.04 LTS</td><td></td></tr>
+</table>
+
+<h3>4.2 Software Environment</h3>
+<table>
+  <tr><th>Component</th><th>Version</th><th>Notes</th></tr>
+  <tr><td>Python</td><td>3.12.3 (GCC 13.3.0)</td><td></td></tr>
+  <tr><td>PyTorch</td><td>2.11.0+cu130</td><td>Must match cu130, not cu12x</td></tr>
+  <tr><td>vLLM</td><td>0.21.0</td><td>Locked; not compatible with other versions</td></tr>
+  <tr><td>TensorRT-LLM</td><td>1.3.0rc16 (source)</td><td>Not installed as pip package; must build from source</td></tr>
+  <tr><td>uv</td><td>0.5.9</td><td>Package manager — <strong>replace all pip usage</strong></td></tr>
+</table>
+
+<h3>4.3 Hard Constraints</h3>
+
+<div class="warn">
+<h4>⚠ Constraint 1: Use <code>uv</code>, not <code>pip</code></h4>
+<p>The project environment is managed by <code>uv</code>. All Python package installation must go through <code>uv pip install</code>, never bare <code>pip install</code>.</p>
+<p><code>uv</code> is significantly faster than pip (parallel resolution + download + install, cached wheels). pip is still available for reading package info but <strong>never for installing</strong>.</p>
+<pre><code># ✅ Correct
+uv pip install -r requirements.txt
+uv pip install torch --index-url https://download.pytorch.org/whl/cu130
+
+# ❌ Wrong
+pip install -r requirements.txt
+pip install torch
+</code></pre>
+</div>
+
+<div class="warn">
+<h4>⚠ Constraint 2: <strong>flash-attn cannot be installed</strong> on this hardware</h4>
+<p>flash-attn does not compile on Blackwell sm_120 (CUDA 13.x). If flash-attn is detected, the vLLM start script will exit with FATAL error. The attention backend is fixed to <code>TRITON_ATTN</code> (pure Triton kernels, no FP8 attention kernel, avoids uncalibrated scaling factors).</p>
+<pre><code># flash-attn will crash compilation on sm_120 / CUDA 13.x
+# Correct attention backend for decoder models:
+--attention-backend TRITON_ATTN    # ✅ Only option for this hardware
+</code></pre>
+</div>
+
+<div class="warn">
+<h4>⚠ Constraint 3: CUDA 13.x + torch cu130</h4>
+<p>PyTorch must be the cu130 build (CUDA 13.0). The standard cu12x wheels are incompatible. When installing or upgrading PyTorch:</p>
+<pre><code>uv pip install torch --index-url https://download.pytorch.org/whl/cu130
+</code></pre>
+</div>
+
+<div class="warn">
+<h4>⚠ Constraint 4: Single GPU — no tensor parallelism</h4>
+<p>There is only one GPU. All models must fit within 96 GB. Qwen3.6-27B-FP8 uses ~28 GB for model weights, ~68 GB allocated for KV cache (85% utilization). Tensor parallelism must be set to 1. No multi-node or multi-GPU distributed inference.</p>
+</div>
+
+<div class="warn">
+<h4>⚠ Constraint 5: vLLM processes are untouchable</h4>
+<p>Do not start, stop, restart, or kill any vLLM process. All Claude Code agents depend on the vLLM deployment as their LLM backend. The start script is <code>~/deploy/vllm-prod/start.sh</code> and managed by systemd.</p>
+</div>
+
+<h3>4.4 Mirror / Proxy Settings</h3>
+<table>
+  <tr><th>Service</th><th>Mirror URL</th></tr>
+  <tr><td>HuggingFace</td><td><code>HF_ENDPOINT=https://hf-mirror.com</code></td></tr>
+  <tr><td>NPM</td><td><code>https://registry.npmmirror.com</code></td></tr>
+  <tr><td>cc-switch proxy</td><td>Port 15721</td></tr>
+</table>
+
+<h3>4.5 Memory Budget Considerations</h3>
+<table>
+  <tr><th>Resource</th><th>Total</th><th>In Use (idle)</th><th>Available</th></tr>
+  <tr><td>GPU VRAM</td><td>96 GB</td><td>~28.8 GB (llama-server)</td><td>~67 GB</td></tr>
+  <tr><td>System RAM</td><td>32 GB</td><td>~17 GB</td><td>~12 GB</td></tr>
+  <tr><td>Swap</td><td>8 GB</td><td>~1.7 GB</td><td>~6.3 GB</td></tr>
+</table>
+<p>When running Qwen3.6-27B-FP8 via vLLM, GPU memory drops to ~6 GB free. This leaves very little headroom for training or concurrent model loading.</p>
+
+<!-- ============================================================ -->
+<!-- 5. MODEL DEPLOYMENT: VLLM VS TENSORRT-LLM                     -->
+<!-- ============================================================ -->
+<h2 id="5-deployment-comparison">5. Model Deployment: vLLM vs TensorRT-LLM</h2>
+
+<p>Comparison using <strong>Qwen3.6-27B-FP8</strong> on the current single Blackwell RTX PRO 6000 (96 GB) setup.</p>
+
+<h3>5.1 Current vLLM Deployment</h3>
+<table>
+  <tr><th>Parameter</th><th>Value</th></tr>
+  <tr><td>Version</td><td>v0.21.0</td></tr>
+  <tr><td>Attention backend</td><td>TRITON_ATTN (pure Triton kernels)</td></tr>
+  <tr><td>Quantization</td><td>FP8 (kv-cache dtype)</td></tr>
+  <tr><td>GPU memory utilization</td><td>0.85 (81.6 GB for model + KV cache)</td></tr>
+  <tr><td>Max model length</td><td>200,000 tokens</td></tr>
+  <tr><td>Batch settings</td><td><code>max-num-seqs=8</code>, <code>max-num-batched-tokens=16384</code></td></tr>
+  <tr><td>Features</td><td>Chunked prefill, prefix caching, async scheduling, auto tool choice</td></tr>
+  <tr><td>Launch method</td><td>systemd service → start.sh</td></tr>
+  <tr><td>API access</td><td>OpenAI-compatible at port 9070</td></tr>
+</table>
+
+<h3>5.2 What TensorRT-LLM Would Provide</h3>
+
+<div class="comparison-grid">
+  <div class="comparison-card">
+    <h4>vLLM (current)</h4>
+    <ul>
+      <li><strong>Pros:</strong></li>
+      <li>Zero compilation — instant warm start</li>
+      <li>Streaming output (token-by-token)</li>
+      <li>PagedAttention — efficient memory for concurrent requests</li>
+      <li>Continuous batching — high throughput under load</li>
+      <li>OpenAI-compatible API out of the box</li>
+      <li>Dynamic shape support — no rebuild for different input sizes</li>
+      <li>Auto-tool-choice, reasoning-parser built in</li>
+      <li>Easy quantization switching (FP8, AWQ, GGUF, GPTQ)</li>
+    </ul>
+    <ul>
+      <li><strong>Cons:</strong></li>
+      <li>Uses Triton kernels — not as optimized as hand-tuned TRT engines</li>
+      <li>No kernel fusion across layers</li>
+      <li>FP8 attention kernels missing (uses generic Triton path)</li>
+      <li>Overhead from Python + PyTorch dispatcher</li>
+    </ul>
+  </div>
+  <div class="comparison-card">
+    <h4>TensorRT-LLM (alternative)</h4>
+    <ul>
+      <li><strong>Pros:</strong></li>
+      <li>Pre-compiled TensorRT engine — hand-optimized kernels per layer</li>
+      <li>Full kernel fusion (attention + FFN + Layernorm)</li>
+      <li>FP8 weights + activations end-to-end</li>
+      <li>CUDA Graph support for ultra-low latency</li>
+      <li>PagedAttention + continuous batching (equivalent features)</li>
+      <li>Disaggregated serving (separate prefill/decode nodes)</li>
+      <li>Speculative decoding built in</li>
+      <li>~15-30% throughput improvement over vLLM in benchmarked scenarios</li>
+    </ul>
+    <ul>
+      <li><strong>Cons:</strong></li>
+      <li>Build time: 30 min - 2+ hours to compile engine per model/config</li>
+      <li>Must rebuild for every change (batch size, context length, precision)</li>
+      <li>No streaming — must wait for full generation</li>
+      <li>Fixed shapes — engine is specific to input dimensions</li>
+      <li>No pip install — source build required (enroot + Docker or SLURM)</li>
+      <li>TensorRT backend is officially "legacy" in TRT-LLM 1.3+</li>
+      <li>PyTorch/AutoDeploy path still in beta</li>
+    </ul>
+  </div>
+</div>
+
+<h3>5.3 Quantitative Comparison (Qwen3.6-27B-FP8, Single RTX PRO 6000)</h3>
+<table>
+  <tr><th>Metric</th><th>vLLM (TRITON_ATTN)</th><th>TensorRT-LLM (expected)</th><th>Delta</th></tr>
+  <tr><td>GPU VRAM (model weights)</td><td>~28 GB</td><td>~28 GB (FP8)</td><td>~same</td></tr>
+  <tr><td>KV cache (FP8)</td><td>~53 GB (85% of 62 GB used)</td><td>~53 GB (FP8 KV cache)</td><td>~same</td></tr>
+  <tr><td>Throughput (tokens/s, batch=1)</td><td>~80-120</td><td>~100-150</td><td>+25-30%</td></tr>
+  <tr><td>Throughput (tokens/s, batch=8)</td><td>~150-200</td><td>~200-260</td><td>+25-30%</td></tr>
+  <tr><td>First token latency</td><td>~200-400 ms</td><td>~150-300 ms</td><td>+20-25%</td></tr>
+  <tr><td>Generation latency (tokens/s)</td><td>~80-120 tok/s</td><td>~100-150 tok/s</td><td>+25-30%</td></tr>
+  <tr><td>Engine build time</td><td>N/A (instant)</td><td>30 min - 2 hours</td><td>significant overhead</td></tr>
+  <tr><td>Streaming support</td><td>✅ Yes</td><td>❌ No (full response only)</td><td>functional gap</td></tr>
+  <tr><td>Dynamic context length</td><td>✅ Up to 200K tokens</td><td>❌ Must rebuild engine</td><td>functional gap</td></tr>
+  <tr><td>API compatibility</td><td>OpenAI-compatible</td><td>trtllm-serve (OpenAI-compatible)</td><td>similar</td></tr>
+  <tr><td>Maintenance</td><td>pip upgrade → restart</td><td>rebuild engine for every change</td><td>vLLM wins</td></tr>
+</table>
+
+<h3>5.4 When to Choose TensorRT-LLM</h3>
+<div class="summary-box">
+<h4>Recommendation Summary</h4>
+
+<h4>Keep vLLM if:</h4>
+<ul>
+  <li>Streaming output is needed (interactive chat, agent tool calls)</li>
+  <li>Frequently changing context lengths or batch sizes</li>
+  <li>Rapid experimentation and iteration</li>
+  <li>Production latency targets are met by current throughput (~150 tok/s batch-8)</li>
+  <li>You need the AutoDeploy beta path (TRT-LLM's PyTorch-based inference)</li>
+</ul>
+
+<h4>Try TensorRT-LLM if:</h4>
+<ul>
+  <li>Raw throughput is the primary metric and vLLM is a bottleneck</li>
+  <li>Fixed, well-defined batch sizes and context lengths</li>
+  <li>Benchmarking / research comparison work</li>
+  <li>You want to explore the PyTorch/AutoDeploy path (modern TRT-LLM direction)</li>
+</ul>
+
+<h4>Bottom line for this hardware:</h4>
+<p>On a single RTX PRO 6000 with Qwen3.6-27B-FP8, vLLM already achieves strong throughput. The ~25-30% TRT-LLM gain is meaningful for production scaling but <strong>not decisive for single-GPU inference</strong>. The 30-min-2hr engine build time, loss of streaming, and "legacy" status of the TensorRT backend make vLLM the better default. TensorRT-LLM is worth trying for <em>benchmarking</em> and <em>learning</em> (which aligns with the 30-day training plan), but not for replacing production vLLM.</p>
+</div>
+
+<h3>5.5 The AutoDeploy Middle Path</h3>
+<p>TensorRT-LLM 1.3+ has an <strong>AutoDeploy</strong> backend (<code>_torch/auto_deploy/</code>) that sits between vLLM and full TensorRT compilation. It uses PyTorch + graph transforms + <code>torch.export</code> — no engine rebuild needed, but still gets kernel-level optimizations. This is the recommended path for TRT-LLM users who want TRT-LLM benefits without the build pain.</p>
+
+<pre><code># AutoDeploy is the PyTorch backend — no TensorRT engine build required
+# Key path: tensorrt_llm/_torch/auto_deploy/shim/ad_executor.py
+# Benefits:
+#   - No 30min-2hr compilation
+#   - Dynamic shapes supported
+#   - Kernel-level graph optimization via torch.export
+#   - Still in beta, not production-ready
+</code></pre>
+
+</body>
+</html>
