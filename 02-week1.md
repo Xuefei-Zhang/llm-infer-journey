@@ -49,14 +49,14 @@ graph TD
     E --> F[git init llm-infer-journey<br/>+ push GitHub]
 ```
 
-**checklist：**
+**checklist（2026-10-10 实测回填）：**
 - [ ] `nvidia-smi` 显示 PRO 6000 Blackwell 96GB / Driver 595.91（⚠️ 当前会报 Driver/library version mismatch：NVML 用户态库 595.91 vs 内核模块 595.71。**不阻塞**——CUDA 计算栈实测正常，Day 1 可继续；要修监控工具稍后重启即可）
-- [ ] `nvcc -V` 显示 CUDA 13.2
-- [ ] `python -c "import torch; print(torch.cuda.get_device_capability())"` → `(12, 0)` (sm_120)
-- [ ] vLLM 已装 → 现为 v0.21.0（`~/deploy/vllm-prod/.venv`）；如需独立学习 venv：`uv venv --python 3.12 && uv pip install "vllm==0.21.0"`
-- [ ] 创建 `~/self/llm-infer-journey/.venv`，激活后装 vllm 0.21.0 + torch + triton
-- [ ] 安装 `nsight-systems` `nsight-compute`（性能分析必备）
-- [ ] 创建 GitHub repo `llm-infer-journey`，README 写"Intel ISP 工程师转型 LLM 推理 30 天打卡"
+- [x] `nvcc -V` 显示 CUDA 13.2（实测 `Cuda compilation tools, release 13.2, V13.2.78`）
+- [x] `python -c "import torch; print(torch.cuda.get_device_capability())"` → `(12, 0)` (sm_120)（生产 venv 实测通过）
+- [x] vLLM 已装 → v0.21.0（`~/deploy/vllm-prod/.venv`），生产 @ 9070 稳定运行
+- [x] 学习 venv → **直接复用生产 venv**（vllm 0.21.0 + torch 2.11.0+cu130 + triton 3.6.0 齐全），不必另建（避免重复占内存，30GB RAM 偏紧）
+- [x] Nsight 已装 → nsys 2025.6.3.541 + ncu 2026.1.1（`/usr/local/cuda/bin/`）
+- [ ] push 本地 4 个 re-baseline commit 到 GitHub（origin 已配置 `Xuefei-Zhang/llm-infer-journey`，本地领先 `3126cd0`）—— **待你拍板再推**
 
 ### 下午（4h）：写第一个 CUDA kernel
 
