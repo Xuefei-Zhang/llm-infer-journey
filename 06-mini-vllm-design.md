@@ -2,7 +2,7 @@
 
 > Week 4 的核心交付物，**简历最重的硬通货**。
 >
-> **设计目标**：5 天造一个可跑的 LLM 推理引擎，达到 vLLM v0.20.1 的 30-50% 性能，覆盖简历所有关键词（PagedAttention / Continuous Batching / MLA / FlashAttention v4 / FP8 / Triton）。
+> **设计目标**：5 天造一个可跑的 LLM 推理引擎，达到 vLLM v0.21.0 的 30-50% 性能，覆盖简历所有关键词（PagedAttention / Continuous Batching / MLA / FlashAttention v4 / FP8 / Triton）。
 >
 > **环境**：本地 PRO 6000 96GB + Ubuntu 24.04 + CUDA 13.2 + ~30GB host RAM。
 >
@@ -49,7 +49,7 @@ mindmap
 | Tokenizer | HuggingFace transformers (仅 tokenizer) |
 | Model | 自己写 forward（不用 transformers 的） |
 | 验证模型 | Qwen2.5-1.5B / Qwen3-0.6B（host RAM 友好） |
-| Benchmark 主力 | Qwen3.6-27B-FP8（如 RAM 允许） |
+| Benchmark 主力 | Qwen3.8-27B-FP8（如 RAM 允许） |
 
 ---
 
@@ -486,15 +486,15 @@ gantt
     title Mini-vLLM 5 天开发节奏
     dateFormat YYYY-MM-DD
     section Day22
-    nano-vllm 通读 + 项目骨架 + Tokenizer + Model loader :2026-05-28, 1d
+    nano-vllm 通读 + 项目骨架 + Tokenizer + Model loader :2026-10-31, 1d
     section Day23
-    KVCacheManager + Paged Attn kernel   :2026-05-29, 1d
+    KVCacheManager + Paged Attn kernel   :2026-11-01, 1d
     section Day24
-    Scheduler + LLMEngine 主循环          :2026-05-30, 1d
+    Scheduler + LLMEngine 主循环          :2026-11-02, 1d
     section Day25
-    FA4 接入 + MLA 骨架 + 测试           :2026-05-31, 1d
+    FA4 接入 + MLA 骨架 + 测试           :2026-11-03, 1d
     section Day26
-    HTTP server + Benchmark + README + Grafana :2026-06-01, 1d
+    HTTP server + Benchmark + README + Grafana :2026-11-04, 1d
 ```
 
 ---
@@ -514,23 +514,23 @@ gantt
 
 ## 八、Benchmark 设计
 
-**对比对象**：vLLM v0.20.1 同模型同硬件（PRO 6000 Blackwell 96GB）
+**对比对象**：vLLM v0.21.0 同模型同硬件（PRO 6000 Blackwell 96GB）
 
 **测试矩阵：**
 
 | 模型 | Batch | Seq Len | 测试指标 |
 |---|---|---|---|
 | Qwen2.5-1.5B | 1, 8, 32 | 1K in / 256 out | TTFT, TPOT, throughput |
-| Qwen3.6-27B-FP8 | 1, 4 | 4K in / 512 out | 同上（RAM 允许时）|
+| Qwen3.8-27B-FP8 | 1, 4 | 4K in / 512 out | 同上（RAM 允许时）|
 | DeepSeek 蒸馏 7B (MLA) | 1, 8 | 2K in / 256 out | 同上（如做 MLA 路线） |
 
-**目标**：mini-vllm 达到 vLLM v0.20.1 **30-50%** 性能就是巨大成功（不要追求 100%）。
+**目标**：mini-vllm 达到 vLLM v0.21.0 **30-50%** 性能就是巨大成功（不要追求 100%）。
 
 **README 里展示（实测数字，禁止编造）：**
 ```
 Qwen2.5-1.5B, batch=8, 1K in / 256 out, RTX PRO 6000 Blackwell 96GB
 
-           Mini-vLLM    vLLM v0.20.1   Ratio
+           Mini-vLLM    vLLM v0.21.0   Ratio
 TTFT       ?            ?              ?
 TPOT       ?            ?              ?
 Throughput ?            ?              ?
@@ -558,7 +558,7 @@ Throughput ?            ?              ?
 ```mermaid
 flowchart TD
     Q[面试官: 介绍下你的 Mini-vLLM] --> A1[1. 动机<br/>转型期想真正理解 vLLM 内部，决定从零造]
-    A1 --> A2[2. 范围<br/>5 天 MVP，对标 vLLM v0.20 核心特性]
+    A1 --> A2[2. 范围<br/>5 天 MVP，对标 vLLM v0.21 核心特性]
     A2 --> A3[3. 关键决策<br/>哪些抄 vLLM、哪些自己写、哪些砍]
     A3 --> A4[4. 难点<br/>讲 1 个具体的坑：如 paged attn block layout]
     A4 --> A5[5. 性能数字<br/>vs vLLM 50%，分析 gap 在哪]
@@ -586,8 +586,8 @@ flowchart TD
 
 | 项目 | 用途 |
 |---|---|
-| [vLLM v0.20.1](https://github.com/vllm-project/vllm) (`~/3rd/vllm`) | 生产级架构（含 `vllm/v1/`、`qwen3_5.py`、`qwen3_5_mtp.py`）|
-| [nano-vllm](https://github.com/) (`~/3rd/nano-vllm`) | **教学级最小实现，~1,200 行，编码时的"参考答案"** |
+| [vLLM v0.21.0](https://github.com/vllm-project/vllm) (`~/3rd/llm_inference/vllm`) | 生产级架构（含 `vllm/v1/`、`qwen3_5.py`、`qwen3_5_mtp.py`）|
+| [nano-vllm](https://github.com/GeeeekExplorer/nano-vllm) (`~/3rd/nano-vllm`) | **教学级最小实现，~1,200 行，编码时的"参考答案"** |
 | [LightLLM](https://github.com/ModelTC/lightllm) | 参考更轻量实现 |
 | [SGLang](https://github.com/sgl-project/sglang) | 参考 RadixAttention |
 | [llm.c](https://github.com/karpathy/llm.c) | 极简 inference 灵感 |

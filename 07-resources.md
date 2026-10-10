@@ -47,7 +47,7 @@
 | 🔴 | **NVFP4 介绍** | [NVIDIA blog](https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/) | Blackwell 必读 |
 | 🟡 | MXFP4/Microscaling Spec | [OCP MX Spec](https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf) | 行业标准 |
 | 🔴 | Marlin GEMM (IST-DASLab 2024) | [arxiv 2408.11743](https://arxiv.org/abs/2408.11743) | 量化推理核心 kernel |
-| 🟡 | **TurboQuant 2-bit KV (2025)** | 查 vLLM v0.20 release notes | 长 context 杀手 |
+| 🟡 | **TurboQuant 2-bit KV (2025)** | 查 vLLM v0.21 release notes | 长 context 杀手 |
 | 🔴 | **EAGLE (2024)** | [arxiv 2401.15077](https://arxiv.org/abs/2401.15077) | 投机解码 SOTA |
 | 🟡 | EAGLE-2 / P-EAGLE | [github](https://github.com/SafeAILab/EAGLE) | 实现细节 |
 | 🟡 | Speculative Decoding 原始 (Leviathan 2022) | [arxiv 2211.17192](https://arxiv.org/abs/2211.17192) | 思想源头 |
@@ -58,7 +58,7 @@
 |---|---|---|---|
 | 🟡 | Mamba (Gu 2023) | [arxiv 2312.00752](https://arxiv.org/abs/2312.00752) | SSM 新秀 |
 | 🟡 | Nemotron-H (NVIDIA 2025) | 查 NV 官博 | Hybrid SSM 落地 |
-| 🟡 | **Qwen3.6 模型卡 + 配置** | [HuggingFace Qwen](https://huggingface.co/Qwen) / [ModelScope Qwen](https://modelscope.cn/organization/Qwen) | 你部署的 27B-FP8 / VL 27B 都在这；带 hybrid linear attention + MTP |
+| 🟡 | **Qwen3.8 模型卡 + 配置** | [HuggingFace Qwen](https://huggingface.co/Qwen) / [ModelScope Qwen](https://modelscope.cn/organization/Qwen) | 你部署的 27B-FP8 / VL 27B 都在这；带 hybrid linear attention + MTP |
 | 🟢 | Llama 4 技术报告 | Meta 官网 | 业界对比 |
 
 ---
@@ -91,9 +91,9 @@
 
 | 优先级 | 资源 | 价值 |
 |---|---|---|
-| 🔴 | [vLLM 官方 docs](https://docs.vllm.ai) | 全面（当前以 v0.20.1 为准） |
+| 🔴 | [vLLM 官方 docs](https://docs.vllm.ai) | 全面（当前以 v0.21.0 为准） |
 | 🔴 | [vLLM blog](https://blog.vllm.ai) | release + 深度（Anatomy / DeepSeek V4 / FP8 KV-Cache / MRV2 / P-EAGLE 必看）|
-| 🔴 | [vLLM GitHub releases](https://github.com/vllm-project/vllm/releases) | 看 v0.20.x 每个 minor 的新特性 |
+| 🔴 | [vLLM GitHub releases](https://github.com/vllm-project/vllm/releases) | 看 v0.21.x 每个 minor 的新特性 |
 | 🟡 | [SGLang docs](https://docs.sglang.ai) | 备选引擎 |
 | 🟡 | [TensorRT-LLM docs](https://nvidia.github.io/TensorRT-LLM/) | 工业部署 |
 | 🟢 | [LMSYS blog](https://lmsys.org/blog/) | SGLang 团队 |

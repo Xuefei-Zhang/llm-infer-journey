@@ -1,12 +1,12 @@
-# Week 2：vLLM v0.20 源码深读 + MLA + FA4（Day 8-14）
+# Week 2：vLLM v0.21 源码深读 + MLA + FA4（Day 8-14）
 
-> **目标**：从"会用 vLLM"到"能改 vLLM 源码 + 提交 1 个 PR + 部署 DeepSeek V4 / Qwen3.6"。
+> **目标**：从"会用 vLLM"到"能改 vLLM 源码 + 提交 1 个 PR + 部署 DeepSeek V4 / Qwen3.8"。
 >
 > **Week 2 是整个 30 天计划的核心**——读懂 vLLM 是国内大模型推理岗的硬门槛。
 >
-> **环境**：本地 PRO 6000 96GB + vLLM v0.20.1 (Day 1 已装)。
+> **环境**：本地 PRO 6000 96GB + vLLM v0.21.0 (Day 1 已装)。源码阅读参考：`~/3rd/llm_inference/vllm`（已 clone，用 `git checkout v0.21.0` 对齐生产版本）。
 >
-> **每日学习流程**：① 读今日面试题 → ② 去 ~/3rd/vllm 找对应源码（Day 8 先 clone） → ③ 回答面试题 → ④ 动手做实验/部署 → ⑤ AI 反向检查 → ⑥ 写每日笔记（progress.md ≤30 行）
+> **每日学习流程**：① 读今日面试题 → ② 去 ~/3rd/llm_inference/vllm 找对应源码（Day 8 先 clone） → ③ 回答面试题 → ④ 动手做实验/部署 → ⑤ AI 反向检查 → ⑥ 写每日笔记（progress.md ≤30 行）
 
 ---
 
@@ -25,14 +25,14 @@ graph LR
 ```
 
 **Week 2 最终交付：**
-- ✅ 一份 vLLM v0.20.1 架构笔记（10K 字，含调用栈图）
+- ✅ 一份 vLLM v0.21.0 架构笔记（10K 字，含调用栈图）
 - ✅ 1 个 vLLM PR（哪怕是文档/小 bug fix 也行，目的是熟悉流程）
-- ✅ DeepSeek V4 蒸馏版 / Qwen3.6-27B-FP8 在本地跑通
-- ✅ 博客 2：《vLLM v0.20 Model Runner V2 源码解析》
+- ✅ DeepSeek V4 蒸馏版 / Qwen3.8-27B-FP8 在本地跑通
+- ✅ 博客 2：《vLLM v0.21 Model Runner V2 源码解析》
 
 ---
 
-## Day 8：Anatomy of vLLM 精读 + 架构总览（2026-05-14，周四）
+## Day 8：Anatomy of vLLM 精读 + 架构总览（2026-10-17，周六）
 
 ### 🎯 今日面试题（八股来源：[08-job-strategy.md §4.2](./08-job-strategy.md)）
 - Q11: vLLM 的整体架构？画一个 7 层调用栈图。（B.11）
@@ -64,9 +64,10 @@ graph TD
 ### 下午（4h）：源码导航 + 关键文件清单
 
 ```bash
-git clone https://github.com/vllm-project/vllm
-cd vllm && git checkout v0.20.1
-uv pip install -e .  # editable install（用 Day 1 的 venv）
+# 本地已有 clone（生产环境实际用的源码树，含 v0.21.0 tag）
+cd ~/3rd/llm_inference/vllm && git checkout v0.21.0
+# 如需独立工作副本：git clone 后用 `git worktree` 或重新 clone 再 checkout v0.21.0
+# uv pip install -e .  # editable install（可选，会拉重依赖，建议只读浏览）
 ```
 
 **必读文件（按顺序）：**
@@ -82,7 +83,7 @@ uv pip install -e .  # editable install（用 Day 1 的 venv）
 | `vllm/v1/attention/backends/flash_attn.py` | ~800 | FA backend |
 | `vllm/v1/attention/backends/mla/` | - | MLA backend (DeepSeek) |
 | `vllm/model_executor/models/qwen3_5.py` | - | **你部署的 27B-FP8 走这个** |
-| `vllm/model_executor/models/qwen3_5_mtp.py` | - | Qwen3.6 MTP head |
+| `vllm/model_executor/models/qwen3_5_mtp.py` | - | Qwen3.8 MTP head |
 
 ### 晚上（1h）：建立调用栈
 画出完整调用链：用户请求 → response 的每一层调用，画在 Excalidraw 上
@@ -94,7 +95,7 @@ uv pip install -e .  # editable install（用 Day 1 的 venv）
 
 ---
 
-## Day 9：Engine + Scheduler 源码（2026-05-15，周五）
+## Day 9：Engine + Scheduler 源码（2026-10-18，周日）
 
 ### 🎯 今日面试题
 - Q12: vLLM Scheduler 怎么调度？Running / Waiting / Preempted 状态如何流转？（B.12）
@@ -155,7 +156,7 @@ flowchart TD
 
 ---
 
-## Day 10：Model Runner V2 深读（2026-05-16，周六）
+## Day 10：Model Runner V2 深读（2026-10-19，周一）
 
 ### 🎯 今日面试题
 - Q14: CUDA Graph 在 vLLM 里怎么用？为什么需要 piecewise capture？（B.14）
@@ -197,7 +198,7 @@ graph TD
 
 **实操：**
 ```bash
-VLLM_LOGGING_LEVEL=DEBUG vllm serve ~/models/Qwen3.6-27B-FP8 --max-model-len 32768
+VLLM_LOGGING_LEVEL=DEBUG vllm serve ~/models/Qwen3.8-27B-FP8 --max-model-len 32768
 # 看启动日志里的 "Capturing CUDA graph for shape ..."
 ```
 
@@ -216,7 +217,7 @@ print(f"step {step_idx}: prefill={n_prefill}, decode={n_decode}")
 
 ---
 
-## Day 11：PagedAttention + KV Cache Manager（2026-05-17，周日）
+## Day 11：PagedAttention + KV Cache Manager（2026-10-20，周二）
 
 ### 🎯 今日面试题
 - Q3: PagedAttention 解决什么问题？为什么 block_size 通常选 16？（A.3）
@@ -259,9 +260,9 @@ graph LR
 - 命中 prefix cache，TTFT 从 1.5s 降到 100ms
 - 算力节省 90%+
 
-**vLLM v0.20.1 启用：**
+**vLLM v0.21.0 启用：**
 ```bash
-vllm serve ~/models/Qwen3.6-27B-FP8 \
+vllm serve ~/models/Qwen3.8-27B-FP8 \
   --enable-prefix-caching \
   --prefix-caching-hash-algo builtin  # 或 sha256
 ```
@@ -282,7 +283,7 @@ vllm serve ~/models/Qwen3.6-27B-FP8 \
 
 ---
 
-## Day 12：MLA + FlashAttention 4 实战（2026-05-18，周一）
+## Day 12：MLA + FlashAttention 4 实战（2026-10-21，周三）
 
 ### 🎯 今日面试题
 - Q8: GQA / MQA / MHA / MLA 4 种 attention 的差别和 KV cache 大小公式？（A.8）
@@ -328,9 +329,9 @@ vllm serve deepseek-ai/DeepSeek-V3-Distill-Qwen-32B \
   --max-model-len 32768 \
   --gpu-memory-utilization 0.92
 
-# Qwen3.6-27B-FP8 + FA4 backend
+# Qwen3.8-27B-FP8 + FA4 backend
 VLLM_ATTENTION_BACKEND=FLASH_ATTN_V4 \
-vllm serve ~/models/Qwen3.6-27B-FP8 \
+vllm serve ~/models/Qwen3.8-27B-FP8 \
   --max-model-len 65536
 ```
 
@@ -349,7 +350,7 @@ vllm serve ~/models/Qwen3.6-27B-FP8 \
 
 ---
 
-## Day 13：Disaggregated Serving (P/D 分离)（2026-05-19，周二）
+## Day 13：Disaggregated Serving (P/D 分离)（2026-10-22，周四）
 
 ### 🎯 今日面试题
 - Q16: Disaggregated P/D 分离 的好处和代价？KV transfer 怎么做（NVLink/RDMA）？（B.16）
@@ -385,13 +386,13 @@ graph LR
 ```bash
 # 终端 1：Prefill server（跑较小模型避免显存冲突）
 CUDA_VISIBLE_DEVICES=0 \
-vllm serve ~/models/Qwen3.6-27B-FP8 \
+vllm serve ~/models/Qwen3.8-27B-FP8 \
   --port 8001 --max-model-len 16384 --gpu-memory-utilization 0.4 \
   --kv-transfer-config '{"kv_role":"producer", "kv_buffer_size":5e9}'
 
 # 终端 2：Decode server
 CUDA_VISIBLE_DEVICES=0 \
-vllm serve ~/models/Qwen3.6-27B-FP8 \
+vllm serve ~/models/Qwen3.8-27B-FP8 \
   --port 8002 --max-model-len 16384 --gpu-memory-utilization 0.4 \
   --kv-transfer-config '{"kv_role":"consumer", "kv_buffer_size":5e9}'
 
@@ -411,7 +412,7 @@ python examples/online_serving/disaggregated_prefill_proxy.py
 
 ---
 
-## Day 14：博客 2 + 提交 vLLM PR（2026-05-20，周三）
+## Day 14：博客 2 + 提交 vLLM PR（2026-10-23，周五）
 
 ### 🎯 今日面试题（Week 2 总复习）
 - Q11-16 全部复习（vLLM 架构 / Scheduler / CUDA Graph / PagedAttention / P/D 分离 / 系统设计）
@@ -453,13 +454,13 @@ git commit -s -m "fix: blah"
 
 ### 下午（4h）：写博客 2
 
-**博客 2 题目：《vLLM v0.20 Model Runner V2 源码解析：从 Anatomy 到自己改源码》**
+**博客 2 题目：《vLLM v0.21 Model Runner V2 源码解析：从 Anatomy 到自己改源码》**
 
 **大纲：**
 1. 为什么读 vLLM 源码：国内大厂推理岗的必备技能
 2. V0/V1/V2 引擎演进史（带 commit 链接）
 3. MRV2 一次 step 的完整流程图（自绘）
-4. PagedAttention 在 v0.20 的新优化（hash-based prefix cache）
+4. PagedAttention 在 v0.21 的新优化（hash-based prefix cache）
 5. MLA backend 怎么接入（DeepSeek V4 实战）
 6. FA4 在 Blackwell PRO 6000 上的性能数字（自测，附 nsys 截图）
 7. 我提交的第一个 PR（链接 + 心得）
@@ -472,7 +473,7 @@ git commit -s -m "fix: blah"
 ### Checkpoint
 - [ ] vLLM PR 提交（哪怕未 merged，链接放简历）
 - [ ] 博客 2 发布
-- [ ] DeepSeek 蒸馏版 + Qwen3.6-27B-FP8 + Llama 4 任意 2 个跑通
+- [ ] DeepSeek 蒸馏版 + Qwen3.8-27B-FP8 + Llama 4 任意 2 个跑通
 
 ---
 
@@ -481,7 +482,7 @@ git commit -s -m "fix: blah"
 | 风险 | 兜底 |
 |---|---|
 | 源码读不进去 | 强制只读 5 个核心文件，其他跳过 |
-| MLA / DeepSeek 跑不起来 | 改跑 Qwen3.6-27B-FP8（更简单） |
+| MLA / DeepSeek 跑不起来 | 改跑 Qwen3.8-27B-FP8（更简单） |
 | PR 找不到 | 写一个新文档（如 "vLLM on PRO 6000 Blackwell 部署指南"）也算 |
 | FA4 编译失败 | 退回 FA3，但博客里说明原因 |
 | Blackwell sm_120 在某些 backend 报 unsupported（特别是 sm_100-only 的 tcgen05 路径） | 换 backend 重试（多数走 WGMMA 的路径在 sm_120 都可用），把过程写进博客 |

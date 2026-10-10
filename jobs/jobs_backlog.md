@@ -23,7 +23,7 @@
 
 ## L1 区 — 调试 / 配置 / 1-3h(快速热身用)
 
-- [ ] **T-001 [L1] 跑通 vLLM serve Qwen3.6-27B-FP8,记录冷启动时间分布**
+- [ ] **T-001 [L1] 跑通 vLLM serve Qwen3.8-27B-FP8,记录冷启动时间分布**
   - 域:1 部署
   - 估时:2h
   - Done:`uv run vllm serve` 启动成功,记录 ckpt 加载耗时、CUDA graph capture 耗时、warmup 耗时三段,贴进 progress.md
@@ -60,7 +60,7 @@
 
 ## L2 区 — 跨工具 / 4-8h(实战级)
 
-- [ ] **T-010 [L2] 给 Qwen3.6-27B-FP8 启用 `--speculative-config` MTP,实测加速比与精度漂移**
+- [ ] **T-010 [L2] 给 Qwen3.8-27B-FP8 启用 `--speculative-config` MTP,实测加速比与精度漂移**
   - 域:7 投机解码
   - 估时:6h
   - Done:对比 baseline / MTP-on,跑 humaneval 子集 50 题,acceptance rate + speedup + pass@1 差
@@ -74,7 +74,7 @@
   - 来源:阿里 JD「长 context 显存优化」
   - 关联:Day 17-18
 
-- [ ] **T-012 [L2] vLLM 升级:把当前 v0.20.x 升到 v0.21.x(或最新 patch),跑全套回归 + diff 配置变更**
+- [x] **T-012 [L2] vLLM 升级:把当前 v0.20.x 升到 v0.21.x(或最新 patch),跑全套回归 + diff 配置变更**（2026-08 已在生产完成：v0.21.0 @ `~/deploy/vllm-prod`，Qwen3.8-27B-FP8 稳定运行）
   - 域:11 框架
   - 估时:6h
   - Done:升级前后 TTFT/TPS 不下降 5% 以上;若有 regression,定位 root cause 并写 progress

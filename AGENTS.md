@@ -11,7 +11,7 @@
 30 天学习冲刺：Intel ISP 系统软件工程师（7 年）→ 国内头部大模型推理工程师（字节 AML / Moonshot / DeepSeek）。
 
 - **Day 0**: 2026-05-06 ✅（硬件到位，纯文档，零代码）
-- **Day 1**: 2026-05-07 ⏳（待开始）
+- **Day 1**: 2026-10-10 ⏳（待开始，2026-10-10 re-baseline 重排，Day 1~30 = 10-10~11-08）
 - **最新进度**: 读 `progress.md` 最新条目
 
 ## 二、硬件（关键约束）
@@ -22,12 +22,13 @@
 | CPU | Intel Core Ultra 9 285K | — |
 | RAM | ~30GB DDR5 | 偏紧，27B 模型加载可能 OOM。用 mmap + 分片加载 |
 | OS | Ubuntu 24.04 + CUDA 13.2 | — |
-| 主力模型 | Qwen3.6-27B-FP8 | hybrid 架构：16 层 full-attn + 48 层 linear-attn |
+| 主力模型 | Qwen3.8-27B-FP8 | hybrid 架构：16 层 full-attn + 48 层 linear-attn，`model_type: qwen3_5`。生产 @ `~/deploy/vllm-prod`（vLLM v0.21.0，9070 端口） |
 
 ## 三、参考仓库（STUDY，NOT COPY）
 
-- `~/3rd/vllm` — 生产级 vLLM v0.20.1，100K+ 行。架构参考。
-- `~/3rd/nano-vllm` — 教学级 ~1,200 行 vLLM clone。编码参考。详见 `06-mini-vllm-design.md §十二` 的模块对照表。
+- `~/3rd/llm_inference/vllm` — vLLM 源码 clone（含 v0.21.0 tag，HEAD 为 v0.23.1rc0 系自编 16 个 .so）。源码阅读参考，用 `git checkout v0.21.0` 对齐生产。
+- `~/3rd/nano-vllm` — 教学级 ~1,200 行 vLLM clone（**Day 22 前需 clone**，仓库 https://github.com/GeeeekExplorer/nano-vllm）。编码参考，详见 `06-mini-vllm-design.md §十二`。
+- ⚠️ `~/3rd/vllm`（无 llm_inference 前缀）实为 KVCache 学习笔记目录，**不是源码**，别当成 vLLM 生产级源码读。
 
 ## 四、文件导航
 
@@ -48,7 +49,7 @@
 每天按以下顺序工作，**不要让理解没到位的用户写代码**：
 
 1. **读面试题** → 当天 day-x.md 的 `## 🎯 今日面试题`，明确要掌握什么
-2. **读参考代码** → `~/3rd/vllm` 或 `~/3rd/nano-vllm` 找对应实现，理解"为什么这样设计"
+2. **读参考代码** → `~/3rd/llm_inference/vllm` 或 `~/3rd/nano-vllm` 找对应实现，理解"为什么这样设计"
 3. **回答面试题** → 用户用自己的话回答，AI 纠正/追问
 4. **手工作业** → 理解到位后才开始 coding/experiment
 5. **费曼检查** → AI 出 2-3 道口试题反向验证
@@ -60,7 +61,7 @@
 - **L4 仅当用户说**"直接写" / "我赶时间"
 - **先 Why 再 How**：不直接丢代码
 - **类比用户已有知识**：IPU/FreeRTOS/PCIe/SoC 背景
-- **2025 H2 后内容（vLLM v0.20+ / FA4 / NVFP4 / MLA）** → 必须 WebFetch 查最新
+- **2025 H2 后内容（vLLM v0.21+ / FA4 / NVFP4 / MLA）** → 必须 WebFetch 查最新
 - **session 结束前提议更新 progress.md**（需用户同意）
 - **可写文件**：`progress.md`, `week*/day*/`, `mini-vllm/`, `blog/`, `notes/`
 - **不动文件**：计划文档、README.md、COACH.md、AGENTS.md

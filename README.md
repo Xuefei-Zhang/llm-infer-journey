@@ -4,9 +4,9 @@
 >
 > **方法**：30 天 × 8h/天 = **240 小时实打实训练**，输出 **3 个 GitHub portfolio 项目 + 4 篇技术博客 + 1 个 vLLM PR**。
 >
-> **当前日期**：2026 年 5 月初（Day 1 = 2026-05-07）
+> **当前日期**：2026-10-10（re-baseline 后 Day 1 = 2026-10-10 ~ Day 30 = 2026-11-08）
 >
-> **规划版本**：v2.1.1（基于 vLLM v0.20.1、DeepSeek V4、Qwen3.6、Blackwell sm_120；本地 PRO 6000 Workstation 96GB 单卡主线）
+> **规划版本**：v2.2（2026-10-10 re-baseline；基于 vLLM v0.21.0、DeepSeek V4、Qwen3.8-27B-FP8、Blackwell sm_120；本地 PRO 6000 Workstation 96GB 单卡主线）
 
 ---
 
@@ -17,7 +17,7 @@
 | [README.md](./README.md) | 总览（本文件） |
 | [01-hardware.md](./01-hardware.md) | 硬件落地记录（PRO 6000 Blackwell 96GB 实装）+ Ubuntu 24.04 + CUDA 13.2 验证 |
 | [02-week1.md](./02-week1.md) | Week 1 Day-by-Day：CUDA 基础 + LLM 推理原理 |
-| [03-week2.md](./03-week2.md) | Week 2 Day-by-Day：vLLM v0.20 源码 + MLA + FA4 |
+| [03-week2.md](./03-week2.md) | Week 2 Day-by-Day：vLLM v0.21 源码 + MLA + FA4 |
 | [04-week3.md](./04-week3.md) | Week 3 Day-by-Day：Kernel + 量化 + P-EAGLE |
 | [05-week4.md](./05-week4.md) | Week 4 Day-by-Day：Mini-vLLM 项目 + 求职冲刺 |
 | [06-mini-vllm-design.md](./06-mini-vllm-design.md) | Week 4 项目架构设计文档 |
@@ -54,7 +54,7 @@ gantt
     axisFormat %m/%d
 
     section Week 1 基础
-    本地环境校准+vLLM跑通  :a1, 2026-05-07, 1d
+    本地环境校准+vLLM跑通  :a1, 2026-10-10, 1d
     CUDA基础+GEMM        :a2, after a1, 3d
     FlashAttention原理    :a3, after a2, 1d
     LLM推理原理+PagedAttn :a4, after a3, 2d
@@ -88,7 +88,7 @@ gantt
 graph TD
     W1["Week 1 完成<br/>━━━━━━━━━━<br/>能写 GEMM CUDA kernel<br/>能算 LLM 显存/延迟公式<br/>跑通 vLLM hello world<br/>📝 博客1: LLM 推理原理"]
 
-    W2["Week 2 完成<br/>━━━━━━━━━━<br/>读懂 vLLM Model Runner V2<br/>本地跑通 Qwen3.6-27B-FP8<br/>提交 1 个 vLLM PR<br/>📝 博客2: vLLM 架构解析"]
+    W2["Week 2 完成<br/>━━━━━━━━━━<br/>读懂 vLLM Model Runner V2<br/>本地跑通 Qwen3.8-27B-FP8<br/>提交 1 个 vLLM PR<br/>📝 博客2: vLLM 架构解析"]
 
     W3["Week 3 完成<br/>━━━━━━━━━━<br/>手写 Triton fused kernel<br/>NVFP4 量化 27B 模型<br/>P-EAGLE 跑通<br/>📝 博客3: Blackwell FP4 实战"]
 
@@ -143,7 +143,7 @@ mindmap
 | CPU | Intel Core Ultra 9 285K | |
 | 主板 | MSI PRO B860-P WIFI | |
 | 内存 | DDR5 ~30GB | ⚠️ 偏紧，建议 Week 1 内升级到 64GB+ |
-| 系统 | Ubuntu 24.04 LTS | Driver 595.58.03 + CUDA 13.2 |
+| 系统 | Ubuntu 24.04 LTS | Driver 595.91 + CUDA 13.2 |
 | 备用 | Mac mini M4 | 端侧 MLX 实验 |
 
 **与公司硬件可移植性**：PRO 6000 Workstation 是 **sm_120**（Blackwell 家族 RTX/Workstation 分支），公司预期的 H100 (sm_90) / B100/B200 (sm_100) 是同家族不同 SM。**baseline PTX (`compute_90` / `compute_100`) 在 sm_120 上 JIT 可跑**，反向（sm_120 编的 cubin 拿到 sm_100）**不行**，需要重新编译。**sm_100 独占** tcgen05 + TMEM + 5 代 NVLink + INT4 Tensor Core；**sm_120 走** mma.sync + WGMMA。简历应表述为"sm_120 实战 + 熟悉 sm_100 移植路径"，**避免说"100% 兼容"**。
@@ -152,8 +152,8 @@ mindmap
 
 ## 信息时效性约定
 
-- ⚠️ **当前是 2026 年 5 月初**，AI 推理领域月度迭代
-- ✅ 计划基于 **vLLM v0.20.1**（2026-05-04 发布）+ DeepSeek V4 + Qwen3.6 时代
+- ⚠️ **当前是 2026 年 10 月**，AI 推理领域月度迭代
+- ✅ 计划基于 **vLLM v0.21.0**（生产 @ `~/deploy/vllm-prod`）+ DeepSeek V4 + Qwen3.8-27B-FP8 时代
 - 🔄 **每周开始前**用 WebFetch 刷新 vLLM blog + arxiv，确保不学过时内容
 - ❓ 任何"新概念"（如某天看到 "FA5"、"DSv5"），立刻向我确认是否影响计划
 
@@ -161,14 +161,14 @@ mindmap
 
 ## 立即行动
 
-**今天（Day 0，2026-05-06）：**
-- [ ] 等 `Qwen/Qwen3.6-27B` 下载完成（确认 `model.safetensors.index.json` 落盘）
-- [ ] 拉取 FP8 主力模型：`modelscope download --model Qwen/Qwen3.6-27B-FP8 --local_dir ~/models/Qwen3.6-27B-FP8`
-- [ ] 创建 venv 并安装 vLLM v0.20.1：`uv venv --python 3.12 && source .venv/bin/activate && uv pip install "vllm==0.20.1"`
-- [ ] 安装 Nsight Systems：`sudo apt install nsight-systems`
-- [ ] 下单 DDR5 内存条扩容到 ≥64GB（Week 4 mini-vLLM 关键依赖）
+**Day 0（2026-05-06）已完成：**
+- [x] FP8 主力模型已下载 → 现为 `~/models/Qwen3.8-27B-FP8`（29GB，生产使用）
+- [x] vLLM 已装 → 现为 v0.21.0（`~/deploy/vllm-prod/.venv`），生产 @ 9070 稳定运行
+- [x] Nsight Systems 已装（2025.6.3）
+- [ ] ⚠️ 驱动 mismatch 待重启：今日 09:15 apt 升级 595.71→595.91（仅用户态），`/var/run/reboot-required` 已标记，重启后 nvidia-smi/新起进程恢复（生产服务不受影响）
+- [ ] DDR5 内存 ~30GB 偏紧（Week 4 mini-vLLM 需 ≥64GB）
 
-**明天（Day 1，2026-05-07）：** 开始 [02-week1.md](./02-week1.md) 的 Day 1 任务
+**Day 1（2026-10-10 周六）：** 开始 [02-week1.md](./02-week1.md) 的 Day 1 任务（环境校准 + 第一个 CUDA kernel）
 
 ---
 

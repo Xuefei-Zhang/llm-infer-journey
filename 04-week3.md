@@ -4,9 +4,9 @@
 >
 > **Week 3 是简历"差异化"关键**——会写 Triton kernel 是和应届生区别的硬指标。
 >
-> **环境**：本地 PRO 6000 96GB + vLLM v0.20.1，Qwen3.6-27B-FP8 已部署。
+> **环境**：本地 PRO 6000 96GB + vLLM v0.21.0，Qwen3.8-27B-FP8 已部署（生产 9070）。
 >
-> **每日学习流程**：① 读今日面试题 → ② 去 ~/3rd/vllm 找对应源码 + 看 Triton tutorial → ③ 回答面试题 → ④ 手写 kernel/做实验 → ⑤ AI 反向检查 → ⑥ 写每日笔记（progress.md ≤30 行）
+> **每日学习流程**：① 读今日面试题 → ② 去 ~/3rd/llm_inference/vllm 找对应源码 + 看 Triton tutorial → ③ 回答面试题 → ④ 手写 kernel/做实验 → ⑤ AI 反向检查 → ⑥ 写每日笔记（progress.md ≤30 行）
 
 ---
 
@@ -26,15 +26,15 @@ graph LR
 
 **Week 3 最终交付：**
 - ✅ 5 个 Triton fused kernel（GitHub）
-- ✅ Qwen3.6-27B 的 NVFP4 量化模型（HuggingFace 上传，自己产出 vs Qwen 官方 FP8）
+- ✅ Qwen3.8-27B 的 NVFP4 量化模型（HuggingFace 上传，自己产出 vs Qwen 官方 FP8）
 - ✅ P-EAGLE 投机解码 demo（吐字速度 2-3×）
 - ✅ 博客 3：《Blackwell sm_120 (PRO 6000 Workstation) 上的 NVFP4 量化与 FA4 实战 —— 兼论与 sm_100 (B100/B200) 的差异》
 
-> **Blackwell sm_120 自验提示**：vLLM 官方量化兼容性表当前 (2026-05) 仅列到 Hopper。NVFP4 / FP8 / TurboQuant 在 Blackwell sm_120（PRO 6000 Workstation）上能否跑通需自行验证。注意 sm_120 **没有 tcgen05 / TMEM**，部分 NVFP4 优化路径（依赖 tcgen05.mma.block_scale）在 CUDA 13.0 cicc 中尚未为 sm_120 emit；CUDA 13.1+ 走 mma.sync.block_scale 路径。每个 Day 末尾记录"实测可用 / 报错 / 兜底方案"到 `progress.md`。
+> **Blackwell sm_120 自验提示**：FP8 W8A8 + FP8 KV cache 已在生产验证可用（`~/deploy/vllm-prod`）；NVFP4 / TurboQuant 在 Blackwell sm_120（PRO 6000 Workstation）上能否跑通需自行验证（NVFP4 本地已知 hang，见 Day 17）。注意 sm_120 **没有 tcgen05 / TMEM**，部分 NVFP4 优化路径（依赖 tcgen05.mma.block_scale）在 CUDA 13.0 cicc 中尚未为 sm_120 emit；CUDA 13.1+ 走 mma.sync.block_scale 路径。每个 Day 末尾记录"实测可用 / 报错 / 兜底方案"到 `progress.md`。
 
 ---
 
-## Day 15：Triton 入门 + Vector Add（2026-05-21，周四）
+## Day 15：Triton 入门 + Vector Add（2026-10-24，周六）
 
 ### 🎯 今日面试题（八股来源：[08-job-strategy.md §4.2](./08-job-strategy.md)）
 - Q26: Triton vs CUDA 的取舍？什么场景用 Triton 更合适？（C.26）
@@ -89,7 +89,7 @@ def vec_add(x, y):
 
 ---
 
-## Day 16：Fused Kernel for LLM（2026-05-22，周五）
+## Day 16：Fused Kernel for LLM（2026-10-25，周日）
 
 ### 🎯 今日面试题
 - Q26: Triton vs CUDA 的取舍？复习（C.26）
@@ -143,7 +143,7 @@ nsys profile --stats=true python my_kernel_bench.py
 
 ---
 
-## Day 17：NVFP4 量化部署（2026-05-23，周六）
+## Day 17：NVFP4 量化部署（2026-10-26，周一）
 
 ### 🎯 今日面试题
 - Q20: KV Cache 量化（FP16 → FP8 → INT4 → INT2 TurboQuant）的精度和容量 tradeoff？（B.20）
@@ -151,7 +151,9 @@ nsys profile --stats=true python my_kernel_bench.py
 
 > **NVFP4 是 Blackwell 的杀手锏**，简历里写"NVFP4 实战经验"是巨大加分项。
 >
-> ⚠️ Blackwell sm_120 + NVFP4 + Qwen3.6 这条路 vLLM 官方文档尚未明确背书，**今天的核心任务是"探出能不能"**，而不是"刷到完美精度"。注意 sm_120 上 NVFP4 走 mma.sync 路径（非 sm_100 的 tcgen05），CUDA 13.2 应已支持，但 cicc emit 状态需实测。
+> ⚠️ **已知故障（2026-10-10 确认）**：本地 `~/models/Qwen3.8-27B-NVFP4` 是下载的官方模型（非自产），在 deploy 项目实测 **GPU hang / 系统 crash，未修复，暂不使用**。本 Day 的产出 = 定位 crash 根因 + 自产对照（需 bf16 源模型，本地暂无，需先下载）；修复不了就记录结论，不阻塞后续 Day。
+>
+> ⚠️ Blackwell sm_120 + NVFP4 + Qwen3.8 这条路 vLLM 官方文档尚未明确背书，**今天的核心任务是"探出能不能"**，而不是"刷到完美精度"。注意 sm_120 上 NVFP4 走 mma.sync 路径（非 sm_100 的 tcgen05），CUDA 13.2 应已支持，但 cicc emit 状态需实测。
 
 ### 上午（4h）：量化基础理论
 
@@ -179,30 +181,30 @@ graph LR
 - 📄 Microscaling (MX) Format Spec — Open Compute Project
 - 📝 vLLM 仓库内 `vllm/model_executor/layers/quantization/nvfp4/` 模块源码（自己 grep）
 
-### 下午（4h）：用 LLM Compressor 量化 Qwen3.6-27B（bf16 源版本）
+### 下午（4h）：用 LLM Compressor 量化 Qwen3.8-27B（bf16 源版本）
 
 ```bash
 uv pip install llmcompressor
 
 # 量化脚本（bf16 → NVFP4，30-60 分钟，96GB 显存够）
-# 注意：源模型必须是 bf16 版（Qwen/Qwen3.6-27B），不是已经 FP8 的版本
+# 注意：源模型必须是 bf16 版（Qwen/Qwen3.8-27B），不是已经 FP8 的版本
 python -c "
 from llmcompressor.transformers import oneshot
 from llmcompressor.modifiers.quantization import QuantizationModifier
 
 oneshot(
-    model='/home/xuefeiz2/models/Qwen3.6-27B',
+    model='/home/xuefeiz2/models/Qwen3.8-27B',
     recipe=QuantizationModifier(
         targets='Linear',
         scheme='NVFP4',
         ignore=['lm_head']
     ),
-    output_dir='/home/xuefeiz2/models/Qwen3.6-27B-NVFP4'
+    output_dir='/home/xuefeiz2/models/Qwen3.8-27B-NVFP4'
 )
 "
 
 # 部署
-vllm serve /home/xuefeiz2/models/Qwen3.6-27B-NVFP4 \
+vllm serve /home/xuefeiz2/models/Qwen3.8-27B-NVFP4 \
   --quantization compressed-tensors \
   --max-model-len 65536
 ```
@@ -213,10 +215,10 @@ vllm serve /home/xuefeiz2/models/Qwen3.6-27B-NVFP4 \
 ```bash
 uv pip install lm-eval
 lm_eval --model vllm \
-  --model_args pretrained=/home/xuefeiz2/models/Qwen3.6-27B-NVFP4 \
+  --model_args pretrained=/home/xuefeiz2/models/Qwen3.8-27B-NVFP4 \
   --tasks gsm8k,mmlu \
   --batch_size 16
-# 对比官方 Qwen3.6-27B-FP8 精度损失（应 <2%）
+# 对比官方 Qwen3.8-27B-FP8 精度损失（应 <2%）
 ```
 
 ### Checkpoint
@@ -227,7 +229,7 @@ lm_eval --model vllm \
 
 ---
 
-## Day 18：FP8 + Marlin GEMM（2026-05-24，周日）
+## Day 18：FP8 + Marlin GEMM（2026-10-27，周二）
 
 ### 🎯 今日面试题
 - Q20: KV Cache 量化 复习（B.20）
@@ -245,7 +247,7 @@ lm_eval --model vllm \
 
 **对照 baseline（Week 1 已部署的 Qwen 官方 FP8）：**
 ```bash
-vllm serve /home/xuefeiz2/models/Qwen3.6-27B-FP8 \
+vllm serve /home/xuefeiz2/models/Qwen3.8-27B-FP8 \
   --max-model-len 65536 \
   --enable-prefix-caching
 # 96GB 单卡可吃 27B FP8 + 200K context + 多并发
@@ -273,7 +275,7 @@ python benchmarks/kernels/benchmark_marlin.py
 
 ---
 
-## Day 19：TurboQuant 2-bit KV Cache（2026-05-25，周一）
+## Day 19：TurboQuant 2-bit KV Cache（2026-10-28，周三）
 
 ### 🎯 今日面试题
 - Q20: KV Cache 量化 复习，重点准备 2-bit TurboQuant 与 INT4 的精度差（B.20）
@@ -303,39 +305,39 @@ graph LR
 ### 下午（4h）：实战
 
 ```bash
-# 注意：Qwen3.6-27B 是 hybrid 架构（16 层 full attention + 48 层 linear attention）
+# 注意：Qwen3.8-27B 是 hybrid 架构（16 层 full attention + 48 层 linear attention）
 # KV cache 主要在 16 层 full attention 上，FP8 KV 时 256K context 已经只占 ~8.4 GB
 # 因此 TurboQuant 在你的本机上"显存收益"没那么夸张，更多是"能不能跑通 + 精度评估"
-vllm serve /home/xuefeiz2/models/Qwen3.6-27B-FP8 \
-  --kv-cache-dtype <实际名称以 v0.20.1 文档为准> \
+vllm serve /home/xuefeiz2/models/Qwen3.8-27B-FP8 \
+  --kv-cache-dtype <实际名称以 v0.21.0 文档为准> \
   --max-model-len 262144  # 256K context
 ```
 
-> ⚠️ `--kv-cache-dtype` 的具体取值（如 `int2_turbo` 是否真的支持）请先跑 `vllm serve --help | grep -i kv-cache-dtype` 看本地 v0.20.1 实际接受的值，**不要硬抄文档里的字符串**。
+> ⚠️ `--kv-cache-dtype` 的具体取值（如 `int2_turbo` 是否真的支持）请先跑 `vllm serve --help | grep -i kv-cache-dtype` 看本地 v0.21.0 实际接受的值，**不要硬抄文档里的字符串**。
 
 **测试：**
 - 给 200K token 的代码库（你自己仓库即可），让模型总结（模拟 Coding Agent 长 context 场景）
 - 对比 FP8 KV vs TurboQuant 的精度差异
 
-### 晚上（1h）：Hybrid SSM 模型对照（与 Qwen3.6 hybrid 互参）
-- Qwen3.6-27B 本身就是 hybrid（gated linear attention + full attention），今天可以做一组小实验：
-  - 用 vLLM 跑 bf16 版 `Qwen/Qwen3.6-27B`，对比 FP8 版的 256K context decode TPS
+### 晚上（1h）：Hybrid SSM 模型对照（与 Qwen3.8 hybrid 互参）
+- Qwen3.8-27B 本身就是 hybrid（gated linear attention + full attention），今天可以做一组小实验：
+  - 用 vLLM 跑 bf16 版 `Qwen/Qwen3.8-27B`，对比 FP8 版的 256K context decode TPS
   - 观察 hybrid 架构下 KV cache 实际占用 vs 纯 attention 模型公式
 
 ### Checkpoint
-- [ ] TurboQuant 在 Qwen3.6-27B-FP8 上跑通 256K context（成功 / 失败均记录）
+- [ ] TurboQuant 在 Qwen3.8-27B-FP8 上跑通 256K context（成功 / 失败均记录）
 - [ ] 长 context QA 精度 vs FP8 KV 对比表
 - [ ] 知道 hybrid 架构下 2-bit KV 的精度边界（哪些任务会崩）
 
 ---
 
-## Day 20：P-EAGLE 投机解码（2026-05-26，周二）
+## Day 20：P-EAGLE 投机解码（2026-10-29，周四）
 
 ### 🎯 今日面试题
 - Q19: 投机解码 原理 + 什么时候 ROI 高/低？EAGLE 和 vanilla SpecDec 区别？（B.19）
 - Q6: Chunked Prefill 是什么？解决什么问题？token budget 怎么选？（A.6）
 
-> **[jobs] 关联任务**: T-010（给 Qwen3.6-27B-FP8 启用 `--speculative-config` MTP，实测加速比与精度漂移）。对比 baseline / MTP-on，跑 humaneval 子集 50 题。
+> **[jobs] 关联任务**: T-010（给 Qwen3.8-27B-FP8 启用 `--speculative-config` MTP，实测加速比与精度漂移）。对比 baseline / MTP-on，跑 humaneval 子集 50 题。
 
 ### 上午（4h）：投机解码原理
 
@@ -359,25 +361,25 @@ graph LR
 - **EAGLE-2 (2024)**：动态 draft tree
 - **P-EAGLE (2025)**：并行 draft，进一步提速
 
-**MTP 路径补充**：Qwen3.6-27B 配置里带 MTP head，vLLM v0.20.1 有 `qwen3_5_mtp.py` 原生支持。今天可以同时尝试 MTP 自带的 multi-token prediction，与外挂 P-EAGLE 做对比。
+**MTP 路径补充**：Qwen3.8-27B 配置里带 MTP head，vLLM v0.21.0 有 `qwen3_5_mtp.py` 原生支持。今天可以同时尝试 MTP 自带的 multi-token prediction，与外挂 P-EAGLE 做对比。
 
 ### 下午（4h）：vLLM 启用 P-EAGLE / MTP
 
 ```bash
 # 路线 A：MTP（最简单，模型自带）
-vllm serve /home/xuefeiz2/models/Qwen3.6-27B-FP8 \
+vllm serve /home/xuefeiz2/models/Qwen3.8-27B-FP8 \
   --speculative-config '{"method": "mtp", "num_speculative_tokens": 3}'
 
 # 路线 B：P-EAGLE（需要外部 draft 模型，先确认 HF 上是否真的有对应 EAGLE 权重）
-# 若找不到 Qwen3.6 的 EAGLE draft，退回 MTP 即可，不要硬编造模型名
+# 若找不到 Qwen3.8 的 EAGLE draft，退回 MTP 即可，不要硬编造模型名
 ```
 
 **Benchmark 对比：**
 ```bash
 # 关 SpecDec
-vllm bench latency --model /home/xuefeiz2/models/Qwen3.6-27B-FP8 --num-iters 100
+vllm bench latency --model /home/xuefeiz2/models/Qwen3.8-27B-FP8 --num-iters 100
 # 开 MTP / P-EAGLE
-vllm bench latency --model /home/xuefeiz2/models/Qwen3.6-27B-FP8 \
+vllm bench latency --model /home/xuefeiz2/models/Qwen3.8-27B-FP8 \
   --speculative-config '...'
 # 期望吞吐 1.5-3×
 ```
@@ -399,18 +401,18 @@ vllm bench latency --model /home/xuefeiz2/models/Qwen3.6-27B-FP8 \
 
 ---
 
-## Day 21：博客 3 + Hybrid 架构小结（2026-05-27，周三）
+## Day 21：博客 3 + Hybrid 架构小结（2026-10-30，周五）
 
 ### 🎯 今日面试题（Week 3 总复习）
 - Q19-26 全部复习（投机解码 / KV 量化 / Triton / Tensor Core / FlashAttention）
 - Q8: GQA/MQA/MHA/MLA 区别复习（A.8）
 
-### 上午（4h）：Qwen3.6 Hybrid 架构深读 + 与 Mamba 系对照
+### 上午（4h）：Qwen3.8 Hybrid 架构深读 + 与 Mamba 系对照
 
 **为什么重要：**
 - Mamba/SSM 是 Transformer 的潜在替代
-- **你正在用的 Qwen3.6-27B 本身就是 hybrid (gated linear attention + full attention)**，已是这个方向的工业落地
-- vLLM v0.20.1 原生 `qwen3_5.py` 支持 hybrid
+- **你正在用的 Qwen3.8-27B 本身就是 hybrid (gated linear attention + full attention)**，已是这个方向的工业落地
+- vLLM v0.21.0 原生 `qwen3_5.py` 支持 hybrid
 
 **对比：**
 
@@ -419,17 +421,17 @@ vllm bench latency --model /home/xuefeiz2/models/Qwen3.6-27B-FP8 \
 | Transformer | O(N) | O(N²) | Llama 3 |
 | Pure Mamba | O(1) state | O(N) | Mamba |
 | Hybrid (Mamba 风) | 部分 KV | O(N) avg | Nemotron-H, Jamba, Zamba |
-| Hybrid (Linear Attn 风) | 16 层 full + 48 层 linear | O(N) avg | **Qwen3.6** |
+| Hybrid (Linear Attn 风) | 16 层 full + 48 层 linear | O(N) avg | **Qwen3.8** |
 
-**任务**：在源码里找到 Qwen3.6 hybrid 的实现（`vllm/model_executor/models/qwen3_5.py`），画出 64 层中哪些层是 full attention、哪些是 linear，并解释 KV cache 为何只挂在 full attention 层上。
+**任务**：在源码里找到 Qwen3.8 hybrid 的实现（`vllm/model_executor/models/qwen3_5.py`），画出 64 层中哪些层是 full attention、哪些是 linear，并解释 KV cache 为何只挂在 full attention 层上。
 
 ### 下午（4h）：写博客 3
 
-**博客 3 题目：《Blackwell sm_120 实战：NVFP4 / FP8 + FA4 + MTP 让 Qwen3.6-27B 在单卡 PRO 6000 96GB 上吃满 256K context —— 顺带说清 sm_120 与 sm_100 的真实差异》**
+**博客 3 题目：《Blackwell sm_120 实战：NVFP4 / FP8 + FA4 + MTP 让 Qwen3.8-27B 在单卡 PRO 6000 96GB 上吃满 256K context —— 顺带说清 sm_120 与 sm_100 的真实差异》**
 
 **大纲：**
 1. Blackwell 第 5 代 Tensor Core 与 NVFP4 / MXFP4
-2. LLM Compressor 量化 Qwen3.6-27B 全流程（含 HuggingFace 链接，如成功）+ Blackwell 兼容性踩坑
+2. LLM Compressor 量化 Qwen3.8-27B 全流程（含 HuggingFace 链接，如成功）+ Blackwell 兼容性踩坑
 3. FA4 vs FA3 在 PRO 6000 96GB 上的实测（带 nsys 截图）
 4. TurboQuant / FP8 KV 让 256K context 成为可能（hybrid 架构下的实际占用）
 5. MTP / P-EAGLE 投机解码：Coding Agent 场景下的吐字速度提升
@@ -437,7 +439,7 @@ vllm bench latency --model /home/xuefeiz2/models/Qwen3.6-27B-FP8 \
 
 **核心图表（实测数字，不要照抄旧版本）：**
 ```
-Qwen3.6-27B 优化前后 (PRO 6000 96GB, 单卡)
+Qwen3.8-27B 优化前后 (PRO 6000 96GB, 单卡)
                     TTFT (8K)   Decode TPS    Max Context
 原版 BF16            ?           ?              ~64K
 官方 FP8             ?           ?              ~200K
@@ -451,12 +453,12 @@ Qwen3.6-27B 优化前后 (PRO 6000 96GB, 单卡)
 - clone Week 4 要参考的 mini 项目：
   - [llm.c (karpathy)](https://github.com/karpathy/llm.c)
   - [llama2.c (karpathy)](https://github.com/karpathy/llama2.c)
-  - 浏览 vLLM v0.20.1 `vllm/v1/` 目录，确定 mini-vLLM 要复刻哪几个核心组件
+  - 浏览 vLLM v0.21.0 `vllm/v1/` 目录，确定 mini-vLLM 要复刻哪几个核心组件
 
 ### Checkpoint
 - [ ] 博客 3 发布
 - [ ] HuggingFace 上传 NVFP4 量化模型（如 Day 17 成功）
-- [ ] Qwen3.6 hybrid 架构层分布图画出来
+- [ ] Qwen3.8 hybrid 架构层分布图画出来
 
 ---
 
@@ -466,8 +468,8 @@ Qwen3.6-27B 优化前后 (PRO 6000 96GB, 单卡)
 |---|---|
 | Triton kernel 不收敛 / 数值不对 | 用 PyTorch 模拟先验证算法，再翻译 |
 | NVFP4 在 Blackwell sm_120 报 unsupported（sm_120 无 tcgen05） | 退回官方 FP8（Day 1 已 baseline，简历依然加分），博客里把"sm_120 没 tcgen05"作为差异化论点 |
-| TurboQuant v0.20.1 不稳定 / 选项不存在 | 用 FP8 KV 替代，效果接近 |
-| P-EAGLE 找不到 Qwen3.6 draft 模型 | 用 MTP（模型自带），或外挂任意 0.5-1B 小模型 |
+| TurboQuant v0.21.0 不稳定 / 选项不存在 | 用 FP8 KV 替代，效果接近 |
+| P-EAGLE 找不到 Qwen3.8 draft 模型 | 用 MTP（模型自带），或外挂任意 0.5-1B 小模型 |
 | 长 context 测试 OOM | 降 max-model-len 到 128K，hybrid 下显存极宽裕 |
 | RAM 不足导致量化 OOM | 加 swap 或先升级到 64GB+ DDR5 |
 

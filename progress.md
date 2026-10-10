@@ -40,7 +40,31 @@
 
 ---
 
+## Re-baseline - 2026-05-07 未启动，2026-10-10（周六）全面重校准
+
+### 背景
+Day 1 原定 2026-05-07，实际 5 个月未启动。今日全面重调研环境，计划文档已同步更新：
+
+- **日期重排**：Day 1 = 2026-10-10 ~ Day 30 = 2026-11-08（30 天不变）
+- **主力模型**：Qwen3.6-27B-FP8 → **Qwen3.8-27B-FP8**（29GB，64 层 hybrid：16 full-attn + 48 linear-attn，`model_type: qwen3_5`，带 MTP head；API served-name 故意保留 `Qwen3.6-27B-FP8` 作兼容别名）
+- **vLLM**：v0.20.1 → **v0.21.0**（`~/deploy/vllm-prod/.venv`，torch 2.11+cu130）；生产 @ 9070：256K ctx / FP8 KV / prefix caching / chunked prefill / tool-call+reasoning parser，2026-08 至今稳定，即 Claude Code 后端
+- **源码参考**：`~/3rd/llm_inference/vllm`（含 v0.21.0 tag，HEAD 为 v0.23.1rc0 系自编）；`~/3rd/vllm` 实为 KVCache 学习笔记目录
+- **NVFP4**：本地 `Qwen3.8-27B-NVFP4`（22GB，官方下载非自产）**已知故障：GPU hang / 系统 crash，未修复，暂不使用**；Day 17 改为“定位根因 + 自产对照”（自产需 bf16 源模型，本地暂无）
+- **已提前完成项**（8 月实战，非本计划产出但可回填）：生产部署、benchmark（TTFT ~32ms / ~50.8 tok/s，`~/deploy/vllm-profiling/`）、3.6 vs 3.8 对比分析、vLLM 源码自编 16 个 .so、SGLang 对照部署
+
+### 卡点（待处理）
+- **驱动 mismatch**：今日 09:15 apt 升级 nvidia 595.71.05→595.91.07（仅用户态），内核模块未换，`/var/run/reboot-required` 已标记。新起进程（nvidia-smi/vllm CLI）全挂，已加载 GPU 的生产服务不受影响。**待重启修复**（用户未拍板）
+
+### 明日计划（Day 1，2026-10-10 周六）
+- 重启修驱动（待用户确认）→ 环境校准 checklist（nvidia-smi / sm_120 / Nsight）
+- vec_add.cu 第一个 CUDA kernel + nsys
+- 面试题 Q23（C.23 Warp divergence）
+
+---
+
 ## Day 1 - 2026-05-07（周四）
+
+> ⚠️ 本模板日期已过期，Day 1 实际重排为 **2026-10-10（周六）**，见 [02-week1.md](./02-week1.md#day-1)。本节保留为打卡模板。
 
 ### 计划：[02-week1.md Day 1](./02-week1.md#day-1)
 

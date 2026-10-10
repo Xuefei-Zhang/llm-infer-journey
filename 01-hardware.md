@@ -4,7 +4,7 @@
 >
 > **决策结果**：选 **NVIDIA RTX PRO 6000 Blackwell 96GB**（放弃 PRO 5000 48GB 备选方案）。
 >
-> **核心理由**：96GB 显存 = Qwen3.6-27B-FP8 + 256K context + 多并发同时跑，覆盖 30 天计划全部场景 + 未来 2 年本地 Coding Agent + 35B-A3B MoE 实验。
+> **核心理由**：96GB 显存 = Qwen3.8-27B-FP8 + 256K context + 多并发同时跑，覆盖 30 天计划全部场景 + 未来 2 年本地 Coding Agent + 35B-A3B MoE 实验。
 
 ---
 
@@ -18,7 +18,7 @@
 | 内存 | DDR5 ~30GB（待升级到 ≥64GB） | ⚠️ Week 4 mini-vLLM 需要 |
 | 系统盘 | NVMe SSD | |
 | 系统 | Ubuntu 24.04 LTS | |
-| Driver | NVIDIA 595.58.03 | 通过 `nvidia-smi` 验证 |
+| Driver | NVIDIA 595.91.07（2026-10 升级；内核模块仍为 595.71.05，需重启对齐，重启前 nvidia-smi 报 version mismatch，但已加载 GPU 的生产服务不受影响） |
 | CUDA | 13.2 | 通过 `nvcc -V` 验证 |
 | 备用 | Mac mini M4 | 端侧 MLX 实验 |
 
@@ -46,7 +46,7 @@ sudo lspci -vvv | grep -A 20 "NVIDIA"
 
 ```bash
 nvcc -V                    # CUDA 13.2
-nvidia-smi                 # Driver 595.58.03
+nvidia-smi                 # Driver 595.91（2026-10 升级后）
 python -c "import torch; print(torch.cuda.is_available(), torch.cuda.get_device_capability())"
 # 期望: True, (12, 0)
 ```
@@ -64,7 +64,7 @@ python -c "import torch; print(torch.cuda.is_available(), torch.cuda.get_device_
 - ✅ CGA（Cluster Programming Model）
 - ✅ DSMEM（Distributed Shared Memory）
 
-> ⚠️ **vLLM Blackwell 量化支持**：vLLM 文档 quantization 矩阵当前列到 Hopper 为止，Blackwell 列尚未独立标注。FP8 W8A8 / NVFP4 实际能否在 PRO 6000 (sm_120) 上跑、性能如何 → **Week 3 Day 17-18 自验**。
+> ⚠️ **vLLM Blackwell 量化支持（2026-10 已验）**：FP8 W8A8 + FP8 KV cache 已在生产验证可用（`~/deploy/vllm-prod`，Qwen3.8-27B-FP8 @ 9070，2026-08 至今稳定运行）。NVFP4 尚未验证：本地 Qwen3.8-27B-NVFP4 实测 GPU hang / 系统 crash 未修复 → **Week 3 Day 17 专项自验**。
 >
 > ⚠️ **sm_120 vs sm_100 关键差异**（NVIDIA 官方）：PRO 6000 Workstation 是 sm_120，与数据中心 B100/B200/GB200 的 sm_100 **同 Blackwell 家族但不同 SM 主版本**：
 > - **sm_100 独占**：tcgen05（5 代异步 Tensor Core）+ TMEM（Tensor Memory）+ 5 代 NVLink + INT4 Tensor Core + 228KB shared mem/SM
@@ -75,18 +75,18 @@ python -c "import torch; print(torch.cuda.is_available(), torch.cuda.get_device_
 
 ---
 
-## 三、显存使用规划（Qwen3.6-27B-FP8 为主力）
+## 三、显存使用规划（Qwen3.8-27B-FP8 为主力）
 
 ### 3.1 模型权重
 
 | 模型 | 精度 | 权重显存 | 用途 |
 |---|---|---|---|
-| Qwen3.6-27B | bf16 (VL) | ~54 GB | Week 3 Hybrid SSM / 多模态实验 |
-| **Qwen3.6-27B-FP8** | **FP8** | **~27 GB** | **Week 1-4 主力** |
-| Qwen3.6-27B (NVFP4) | NVFP4 | ~14 GB | Week 3 Day 17-18 自量化 |
+| Qwen3.8-27B | bf16 (VL) | ~54 GB | Week 3 Hybrid SSM / 多模态实验 |
+| **Qwen3.8-27B-FP8** | **FP8** | **~27 GB** | **Week 1-4 主力** |
+| Qwen3.8-27B (NVFP4) | NVFP4 | ~14 GB | Week 3 Day 17-18 自量化 |
 | Qwen3.6-35B-A3B-FP8 | FP8 (MoE) | ~35 GB | Week 3 MoE 备选 |
 
-### 3.2 KV cache 预算（Qwen3.6-27B 真实结构）
+### 3.2 KV cache 预算（Qwen3.8-27B 真实结构）
 
 `config.json` 实测：64 层中 **16 层 full_attention + 48 层 linear_attention（hybrid SSM）**，GQA 4 KV heads × head_dim 256。
 
@@ -108,7 +108,7 @@ KV (INT4, TurboQuant) per token = 8 KB
 
 ### 3.3 与 GitHub Copilot 体验对标
 
-| 维度 | Copilot | PRO 6000 + Qwen3.6-27B-FP8 |
+| 维度 | Copilot | PRO 6000 + Qwen3.8-27B-FP8 |
 |---|---|---|
 | Decode 速度（理论上限）| 50 tps | 1792 / 27 ≈ **66 tps** ✅ |
 | 上下文 | 64-128K | **256K+** ✅ |
@@ -196,11 +196,11 @@ vLLM 官方 quantization 表停在 Hopper。Week 3 Day 17-18 必须实测以下�
 
 ```
 ~/models/
-├── Qwen3.6-27B/              # bf16 VL，多模态版（下载中）
+├── Qwen3.8-27B/              # bf16 VL，多模态版（下载中）
 │   ├── config.json
 │   ├── model-00001-of-NN.safetensors
 │   └── ...
-└── Qwen3.6-27B-FP8/          # FP8 主力（待下载，命令在下面）
+│   └── Qwen3.8-27B-FP8/          # FP8 主力（已下载，49GB→29GB 磁盘，生产使用）
     ├── config.json
     └── ...
 ```
@@ -209,14 +209,16 @@ vLLM 官方 quantization 表停在 Hopper。Week 3 Day 17-18 必须实测以下�
 
 ```bash
 modelscope download \
-  --model Qwen/Qwen3.6-27B-FP8 \
-  --local_dir ~/models/Qwen3.6-27B-FP8
+  --model Qwen/Qwen3.8-27B-FP8 \
+  --local_dir ~/models/Qwen3.8-27B-FP8
 ```
+
+> ✅ 已于 Day 0 完成后下载（当前生产使用），上述命令保留为复现参考。
 
 ---
 
 ## 八、下一步
 
-→ 完成 [README.md 立即行动清单](./README.md#立即行动) 的 Day 0 任务（FP8 模型下载 + vLLM v0.20.1 安装 + Nsight Systems）
+→ 完成 [README.md 立即行动清单](./README.md#立即行动) 的 Day 0 任务（FP8 模型下载 + vLLM v0.21.0 安装 + Nsight Systems）
 
-→ 开始 [02-week1.md](./02-week1.md) 的 Day 1 任务（2026-05-07）
+→ 开始 [02-week1.md](./02-week1.md) 的 Day 1 任务（2026-10-10）

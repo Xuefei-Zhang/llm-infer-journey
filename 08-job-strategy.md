@@ -59,7 +59,7 @@ graph TD
 │  转型 LLM 推理：vLLM 贡献者 / Blackwell 实战 │
 ├─────────────────────────────────────────────┤
 │ 【核心技能】                                  │
-│  - LLM 推理：vLLM v0.20.1, SGLang, MLA, FA4 │
+│  - LLM 推理：vLLM v0.21.0, SGLang, MLA, FA4 │
 │  - GPU 编程：CUDA 13, Triton, Blackwell sm_120│
 │  - 量化：FP8, NVFP4, Marlin, TurboQuant     │
 │  - 系统：Linux, FreeRTOS, ARM, x86, PCIe    │
@@ -71,7 +71,7 @@ graph TD
 │  - 对标 vLLM 达到 50% 性能（Qwen3-8B-FP8）   │
 │                                              │
 │  vLLM 贡献：[PR #xxxx 链接]                  │
-│  量化模型：HuggingFace/xxx/Qwen3.6-27B-NVFP4 │
+│  量化模型：HuggingFace/xxx/Qwen3.8-27B-NVFP4 │
 │                                              │
 │  技术博客（4 篇）：[链接]                     │
 ├─────────────────────────────────────────────┤
@@ -121,7 +121,7 @@ graph TD
 > "用 vLLM 部署了 Qwen3 模型"
 
 **✅ 对的写法（量化 + 上下文 + 决策）：**
-> "在 RTX PRO 6000 Blackwell Workstation (sm_120, 96GB) 上部署 Qwen3.6-27B-FP8（hybrid 16 full-attn + 48 linear-attn 共 64 层）：
+> "在 RTX PRO 6000 Blackwell Workstation (sm_120, 96GB) 上部署 Qwen3.8-27B-FP8（hybrid 16 full-attn + 48 linear-attn 共 64 层）：
 > - baseline 用 Qwen 官方 FP8 权重；同时用 LLM Compressor 自产 NVFP4 版做对照
 > - 启用 FlashAttention v4 + Prefix Caching + FP8 KV cache
 > - 实现 256K context 单卡推理，Decode XX tps（实测，vs FP16 KV baseline）
@@ -160,10 +160,10 @@ graph LR
 
 | 时间 | 投递阶段 | 数量 |
 |---|---|---|
-| Day 27（周二，2026-06-02）| 第一批投：5-7 家第一梯队 | 5-7 |
-| Day 28-29（周三-四，6-03 ~ 6-04）| 第一批响应 + 投第二批：5-8 家第二梯队 | 5-8 |
-| Day 30（周五，2026-06-05）| 第三批：第三梯队 + 备胎 | 5-10 |
-| Week 5+（2026-06-08 起）| 持续补投，跟进面试 | 10+ |
+| Day 27（周四，2026-11-05）| 第一批投：5-7 家第一梯队 | 5-7 |
+| Day 28-29（周五-六，11-06 ~ 11-07）| 第一批响应 + 投第二批：5-8 家第二梯队 | 5-8 |
+| Day 30（周日，2026-11-08）| 第三批：第三梯队 + 备胎 | 5-10 |
+| Week 5+（2026-11-09 起）| 持续补投，跟进面试 | 10+ |
 
 ---
 
@@ -275,7 +275,7 @@ graph TD
 ```
 
 **练手题：**
-- 设计支持 100 路并发的 Coding Agent 推理服务（Qwen3.6 27B）
+- 设计支持 100 路并发的 Coding Agent 推理服务（Qwen3.8 27B）
 - 设计 DeepSeek V3 671B MoE 的多机推理（H100 集群）
 - 设计长文档总结服务（输入 1M token, 输出 4K token）
 
@@ -353,14 +353,14 @@ gantt
     title Onboarding 后的持续成长
     dateFormat YYYY-MM-DD
     section 入职前
-    刷算法 + 复习八股       :2026-06-06, 30d
+    刷算法 + 复习八股       :2026-11-09, 30d
     section 入职后 0-3 月
-    熟悉团队 stack          :2026-07-06, 30d
-    第一个独立 owner 任务   :2026-08-06, 60d
+    熟悉团队 stack          :2027-01-06, 30d
+    第一个独立 owner 任务   :2027-02-06, 60d
     section 入职后 3-6 月
-    主导 1 个优化项目        :2026-10-06, 90d
+    主导 1 个优化项目        :2027-04-06, 90d
     section 入职后 6-12 月
-    冲资深 / 晋升            :2027-01-06, 180d
+    冲资深 / 晋升            :2027-07-06, 180d
 ```
 
 **持续做的事：**

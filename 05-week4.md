@@ -4,9 +4,9 @@
 >
 > **30 天成败在此一周。**
 >
-> **环境**:本地 PRO 6000 96GB + Qwen3.6-27B-FP8 已部署。Mini-vLLM 验证用小模型,性能对比也用 Qwen3.6-27B-FP8。
+> **环境**:本地 PRO 6000 96GB + Qwen3.8-27B-FP8 已部署（生产 9070，vLLM v0.21.0）。Mini-vLLM 验证用小模型,性能对比也用 Qwen3.8-27B-FP8。源码对照参考：`~/3rd/llm_inference/vllm`（v0.21.0 tag）+ nano-vllm（Day 22 前需 clone 到 `~/3rd/nano-vllm`，仓库: https://github.com/GeeeekExplorer/nano-vllm）。
 >
-> **每日学习流程 (Day 22-26)**：① 读今日面试题 → ② 去 ~/3rd/nano-vllm 和 ~/3rd/vllm 对照看源码 → ③ 回答面试题 → ④ 手写 mini-vllm 代码 → ⑤ AI 反向检查 → ⑥ pytest 跑通 + 写每日笔记
+> **每日学习流程 (Day 22-26)**：① 读今日面试题 → ② 去 ~/3rd/nano-vllm 和 ~/3rd/llm_inference/vllm 对照看源码 → ③ 回答面试题 → ④ 手写 mini-vllm 代码 → ⑤ AI 反向检查 → ⑥ pytest 跑通 + 写每日笔记
 
 ---
 
@@ -37,7 +37,7 @@ graph LR
 
 ---
 
-## Day 22:Mini-vLLM 项目启动(2026-05-28,周四)
+## Day 22:Mini-vLLM 项目启动(2026-10-31,周六)
 
 ### 🎯 今日面试题（先答，再看代码，再写代码）
 - Q3: PagedAttention 解决什么问题？为什么 block_size 通常选 16？（八股 A.3）
@@ -111,7 +111,7 @@ class QwenAttention(nn.Module):
 
 ---
 
-## Day 23:PagedAttention 实现(2026-05-29,周五)
+## Day 23:PagedAttention 实现(2026-11-01,周日)
 
 ### 🎯 今日面试题（先答，再看代码，再写代码）
 - Q12: vLLM Scheduler 怎么调度？Running / Waiting / Preempted 状态如何流转？（八股 B.12）
@@ -161,7 +161,7 @@ def paged_attention_decode_kernel(
     BLOCK_SIZE: tl.constexpr,
     HEAD_DIM: tl.constexpr,
 ):
-    # 参考 vLLM v0.20.1 中 paged_attention kernel
+    # 参考 vLLM v0.21.0 中 paged_attention kernel
     ...
 ```
 
@@ -182,7 +182,7 @@ def paged_attention_decode_kernel(
 
 ---
 
-## Day 24:Continuous Batching Scheduler(2026-05-30,周六)
+## Day 24:Continuous Batching Scheduler(2026-11-02,周一)
 
 ### 🎯 今日面试题（先答，再看代码，再写代码）
 - Q12: vLLM Scheduler 怎么调度？Running / Waiting / Preempted 状态如何流转？（八股 B.12）
@@ -276,7 +276,7 @@ print(outs)  # 期望两个合理回答
 
 ---
 
-## Day 25:FA4 接入 + MLA 骨架(2026-05-31,周日)
+## Day 25:FA4 接入 + MLA 骨架(2026-11-03,周二)
 
 ### 🎯 今日面试题（先答，再看代码，再写代码）
 - Q8: GQA / MQA / MHA / MLA 4 种 attention 的差别和 KV cache 大小公式？（八股 A.8）
@@ -333,7 +333,7 @@ class FlashAttentionBackend:
 
 ### 晚上(1h):测试
 - 用 mini-vllm 跑 DeepSeek-V3 蒸馏版(MLA),或继续用 Qwen 路线
-- 对比输出与 vLLM v0.20.1 是否一致(允许小数值差异,不允许语义崩坏)
+- 对比输出与 vLLM v0.21.0 是否一致(允许小数值差异,不允许语义崩坏)
 
 ### Checkpoint
 - [ ] FA4 backend 集成完成（优先）
@@ -344,7 +344,7 @@ class FlashAttentionBackend:
 
 ---
 
-## Day 26:Benchmark 对标 vLLM + 项目完善(2026-06-01,周一)
+## Day 26:Benchmark 对标 vLLM + 项目完善(2026-11-04,周三)
 
 ### 🎯 今日面试题（先答，再看代码，再写代码）
 - Q7: TTFT / TPOT / E2E latency / Throughput / Goodput 分别怎么定义？（八股 A.7）
@@ -367,13 +367,13 @@ def bench(engine, prompts, n_repeat=3):
         times.append(time.time() - t0)
     return min(times)
 
-# 对比 vLLM v0.20.1 在同一台机器同一模型
-mini_t = bench(MiniVLLMEngine("/home/xuefeiz2/models/Qwen3.6-27B-FP8"), prompts)
-vllm_t = bench(VLLMEngine("/home/xuefeiz2/models/Qwen3.6-27B-FP8"), prompts)
+# 对比 vLLM v0.21.0 在同一台机器同一模型
+mini_t = bench(MiniVLLMEngine("/home/xuefeiz2/models/Qwen3.8-27B-FP8"), prompts)
+vllm_t = bench(VLLMEngine("/home/xuefeiz2/models/Qwen3.8-27B-FP8"), prompts)
 print(f"Mini-vLLM: {mini_t:.2f}s, vLLM: {vllm_t:.2f}s, ratio: {mini_t/vllm_t:.1%}")
 ```
 
-**目标:达到 vLLM v0.20.1 30-50% 性能**(这已经非常体面了)
+**目标:达到 vLLM v0.21.0 30-50% 性能**(这已经非常体面了)
 
 > 如果 27B-FP8 host RAM OOM,先用 Qwen2.5-7B-FP8 之类小模型出 benchmark,把 27B 列为"Future Work"。诚实 > 编数。
 
@@ -396,12 +396,12 @@ A from-scratch LLM inference engine with PagedAttention, hybrid attention, and C
 - FP8 / NVFP4 quantization support (via compressed-tensors)
 - OpenAI-compatible HTTP server
 
-## Benchmark vs vLLM v0.20.1 (PRO 6000 Blackwell, 96GB)
+## Benchmark vs vLLM v0.21.0 (PRO 6000 Blackwell, 96GB)
 
 | Model | Mini-vLLM TPS | vLLM TPS | Ratio |
 |---|---|---|---|
 | Qwen2.5-1.5B | XX | XX | XX% |
-| Qwen3.6-27B-FP8 | XX | XX | XX% |
+| Qwen3.8-27B-FP8 | XX | XX | XX% |
 
 ## Architecture
 [贴架构图]
@@ -431,7 +431,7 @@ A from-scratch LLM inference engine with PagedAttention, hybrid attention, and C
 
 ---
 
-## Day 27:简历包装 + 投递(2026-06-02,周二)
+## Day 27:简历包装 + 投递(2026-11-05,周四)
 
 ### 上午(4h):简历定稿
 
@@ -475,7 +475,7 @@ graph TD
 
 ---
 
-## Day 28:面试八股复习 + Mock(2026-06-03,周三)
+## Day 28:面试八股复习 + Mock(2026-11-06,周五)
 
 ### 全天 8h:复习（不是突击，是回顾前 27 天的面试题）
 
@@ -496,7 +496,7 @@ graph TD
 
 ---
 
-## Day 29:持续投 + 电话面试(2026-06-04,周四)
+## Day 29:持续投 + 电话面试(2026-11-07,周六)
 
 ### 上午:响应面试邀请、电话约时间
 
@@ -509,7 +509,7 @@ graph TD
 
 ---
 
-## Day 30:博客 4 + 总复盘(2026-06-05,周五)
+## Day 30:博客 4 + 总复盘(2026-11-08,周日)
 
 ### 上午(4h):博客 4
 
@@ -519,7 +519,7 @@ graph TD
 1. 30 天概览(甘特图)
 2. 4 周里程碑回顾
 3. Mini-vLLM 架构详解(含每个模块 design note 链接)
-4. 性能对比 vLLM v0.20.1
+4. 性能对比 vLLM v0.21.0
 5. 转型建议给同行(系统软件背景如何过渡)
 6. 简历开放讨论 + 求 offer 评估
 

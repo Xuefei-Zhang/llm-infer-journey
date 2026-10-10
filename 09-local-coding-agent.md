@@ -1,10 +1,10 @@
 # 本地 Coding Agent 部署：替代 GitHub Copilot
 
-> **目标**：用本地 RTX PRO 6000 Blackwell 96GB + Qwen3.6-27B-FP8 跑 OpenCode / Cursor / Continue，**完全替代到期的 GitHub Copilot**，且体验达到 90-95%。
+> **目标**：用本地 RTX PRO 6000 Blackwell 96GB + Qwen3.8-27B-FP8 跑 OpenCode / Cursor / Continue，**完全替代到期的 GitHub Copilot**，且体验达到 90-95%。
 >
 > **顺带做求职简历加分项**：写一篇 "本地 Coding Agent 部署调优" 博客。
 >
-> **当前环境**：Ubuntu 24.04 + Driver 595.58.03 + CUDA 13.2 + vLLM v0.20.1。
+> **当前环境**：Ubuntu 24.04 + Driver 595.91 + CUDA 13.2 + vLLM v0.21.0（生产 @ 9070）。
 
 ---
 
@@ -22,21 +22,21 @@
 | 模型尺寸下限 | 7B 够用 | **≥27B**（代码能力质变阈值）|
 | Prefix Cache 命中率 | 低 | **极高**（system prompt + tools 固定）|
 
-### 1.2 Qwen3.6-27B-FP8 的合理性
+### 1.2 Qwen3.8-27B-FP8 的合理性
 
 ```mermaid
 graph LR
     M14B[Qwen3-14B / 32B<br/>速度快但代码弱 or 显存吃紧] -->|质量/容量不平衡| X1[❌ 不推荐]
-    M27B[Qwen3.6-27B-FP8 Hybrid<br/>16 full-attn + 48 linear-attn<br/>FP8 ≈ 27GB] -->|甜点| OK[✅ 首选]
+    M27B[Qwen3.8-27B-FP8 Hybrid<br/>16 full-attn + 48 linear-attn<br/>FP8 ≈ 27GB] -->|甜点| OK[✅ 首选]
     M70B[Qwen3 70B+ Dense<br/>FP8 仍 ~70GB + KV 紧张] -->|显存压力| X2[⚠️ 可玩但 Coding Agent 体验下降]
     MoE[Qwen3-235B-A22B / -A3B<br/>稀疏激活] -->|总权重 200GB+| X3[❌ 单卡跑不了完整模型]
 
     style OK fill:#d4edda
 ```
 
-**确认信息（2026-05 已验证）：**
-- `Qwen/Qwen3.6-27B`（bf16 多模态 VL，hybrid 架构 + MTP）和 `Qwen/Qwen3.6-27B-FP8` 均已上 ModelScope / HuggingFace
-- vLLM v0.20.1 原生支持 `qwen3_5` + `qwen3_5_mtp.py`（即 Qwen3.6 系列）
+**确认信息（2026-10 已验证，生产运行中）：**
+- `Qwen/Qwen3.8-27B`（bf16 多模态 VL，hybrid 架构 + MTP）和 `Qwen/Qwen3.8-27B-FP8` 均已上 ModelScope / HuggingFace
+- vLLM v0.21.0 原生支持 `qwen3_5` + `qwen3_5_mtp.py`（即 Qwen3.8 系列）
 - Coding Agent 主线选 FP8 版（非 VL，纯文本/代码）
 
 ---
@@ -47,13 +47,13 @@ graph LR
 graph TD
     P6[PRO 6000 Blackwell Workstation 96GB<br/>1792 GB/s · sm_120 · 600W]
 
-    P6 --> Plan1[甜点配置<br/>Qwen3.6-27B-FP8]
+    P6 --> Plan1[甜点配置<br/>Qwen3.8-27B-FP8]
     Plan1 --> P1A[模型 ~27 GB<br/>剩余 ~65 GB 给 KV + activation]
     P1A --> P1B[KV cache: 256K context<br/>FP8 KV，hybrid 下仅 ~8.4 GB<br/>+ 4 路并发足够]
     P1B --> P1C[Decode 50-66 tps 理论<br/>实测带 prefix cache 可飙到 80+ tps<br/>TTFT < 1s]
     P1C --> P1D[体验 vs Copilot: 90-95%]
 
-    P6 --> Plan2[豪华配置<br/>Qwen3.6-27B bf16 VL 满血]
+    P6 --> Plan2[豪华配置<br/>Qwen3.8-27B bf16 VL 满血]
     Plan2 --> P2A[权重 ~54 GB → 适合做多模态实验]
     P2A --> P2B[Coding Agent 主线不用，仅供研究]
 
@@ -75,7 +75,7 @@ graph TD
 
 ```bash
 #!/usr/bin/env bash
-# Coding Agent 专用 vLLM 启动脚本（PRO 6000 Blackwell 96GB · vLLM v0.20.1）
+# Coding Agent 专用 vLLM 启动脚本（PRO 6000 Blackwell 96GB · vLLM v0.21.0）
 
 set -e
 
@@ -84,12 +84,12 @@ PORT=8000
 LOG_DIR=$HOME/logs/vllm
 mkdir -p "$LOG_DIR"
 
-MODEL=/home/xuefeiz2/models/Qwen3.6-27B-FP8
+MODEL=/home/xuefeiz2/models/Qwen3.8-27B-FP8
 MAX_LEN=262144      # 256K context（hybrid 架构 + FP8 KV，实际 KV 仅 ~8.4 GB）
 GPU_UTIL=0.92
 KV_DTYPE=fp8
 
-# 启动 vLLM v0.20.1
+# 启动 vLLM v0.21.0
 exec vllm serve "$MODEL" \
     --host "$HOST" --port "$PORT" \
     --max-model-len "$MAX_LEN" \
@@ -105,7 +105,7 @@ exec vllm serve "$MODEL" \
     2>&1 | tee "$LOG_DIR/$(date +%Y%m%d-%H%M%S).log"
 ```
 
-> ⚠️ `--tool-call-parser` / `--reasoning-parser` 的可用值随 vLLM 版本变化。先 `vllm serve --help | grep -E 'tool-call-parser|reasoning-parser'` 确认 v0.20.1 实际接受的字符串再硬编码。
+> ⚠️ `--tool-call-parser` / `--reasoning-parser` 的可用值随 vLLM 版本变化。先 `vllm serve --help | grep -E 'tool-call-parser|reasoning-parser'` 确认 v0.21.0 实际接受的字符串再硬编码。
 
 **用法：**
 ```bash
@@ -179,7 +179,7 @@ Settings → Models → Add Custom Model：
 
 ```yaml
 models:
-  - title: Local Qwen3.6 Coder
+  - title: Local Qwen3.8 Coder
     provider: openai
     model: local-coder
     apiBase: http://localhost:8000/v1
@@ -250,11 +250,11 @@ graph TD
 **两条路径（按可用性优先级）：**
 
 ```bash
-# 路径 A：MTP（Qwen3.6-27B-FP8 自带，最简单）
+# 路径 A：MTP（Qwen3.8-27B-FP8 自带，最简单）
 --speculative-config '{"method": "mtp", "num_speculative_tokens": 3}'
 
 # 路径 B：P-EAGLE（需外部 EAGLE draft 权重）
-# 先在 HF / ModelScope 搜 "Qwen3.6 EAGLE"，确认有官方/社区 draft 再用
+# 先在 HF / ModelScope 搜 "Qwen3.8 EAGLE"，确认有官方/社区 draft 再用
 # 找不到就用 MTP，不要硬编造模型名
 ```
 
@@ -286,13 +286,13 @@ docker compose -f vllm/examples/online_serving/prometheus_grafana/docker-compose
 
 ## 六、与 Copilot 的真实对比
 
-### 6.1 体验对比表（基于本地 PRO 6000 96GB + Qwen3.6-27B-FP8）
+### 6.1 体验对比表（基于本地 PRO 6000 96GB + Qwen3.8-27B-FP8）
 
-| 维度 | GitHub Copilot | 本地 Qwen3.6 27B | 评估 |
+| 维度 | GitHub Copilot | 本地 Qwen3.8 27B | 评估 |
 |---|---|---|---|
 | 自动补全速度 | 即时 | 60-100ms 延迟 | ⚠️ 略慢 |
 | 长 context（整 repo）| 64-128K | **256K** ✅ | 本地胜 |
-| 代码质量 | Claude/GPT-4o | Qwen3.6 中等 | Copilot 略胜 |
+| 代码质量 | Claude/GPT-4o | Qwen3.8 中等 | Copilot 略胜 |
 | Agent 模式（多步推理）| ✅ | ✅ | 平 |
 | Tool calling | ✅ | ✅（Qwen3 原生） | 平 |
 | 24h 无限调用 | ❌ 配额限制 | **✅** | 本地胜 |
@@ -303,7 +303,7 @@ docker compose -f vllm/examples/online_serving/prometheus_grafana/docker-compose
 ### 6.2 Decode 速度实测（理论 + 实际）
 
 ```
-配置：PRO 6000 96GB + Qwen3.6-27B-FP8 + 32K KV cache (FP8)
+配置：PRO 6000 96GB + Qwen3.8-27B-FP8 + 32K KV cache (FP8)
 模型显存读取量 ≈ 27 GB（FP8 权重）+ KV 部分（hybrid 下 32K 仅 ~1 GB）
 理论 Decode TPS ≈ 1792 / 28 ≈ 64 tps
 实测目标（含 prefix cache 命中）= 60-80 tps（Coding Agent 流畅）
@@ -390,12 +390,12 @@ curl http://localhost:8000/metrics | grep prefix_cache
 ## 十、写成博客的角度
 
 **博客标题（求职 + 流量双赢）：**
-> 《不再续费 GitHub Copilot：用 RTX PRO 6000 Blackwell 96GB + vLLM v0.20.1 + Qwen3.6-27B-FP8 自建 Coding Agent 的 30 天实战》
+> 《不再续费 GitHub Copilot：用 RTX PRO 6000 Blackwell 96GB + vLLM v0.21.0 + Qwen3.8-27B-FP8 自建 Coding Agent 的 30 天实战》
 
 **大纲：**
 1. 为什么放弃 Copilot（隐私、配额、模型不可控）
 2. 硬件选型（为什么是单卡 PRO 6000 96GB 而不是双 4090 / cloud）
-3. vLLM v0.20.1 + Qwen3.6 hybrid 架构部署细节
+3. vLLM v0.21.0 + Qwen3.8 hybrid 架构部署细节
 4. Prefix Caching 让 Coding Agent 起飞
 5. MTP / P-EAGLE 投机解码：实测吐字速度提升
 6. OpenCode/Cursor/Continue 配置
@@ -412,16 +412,16 @@ curl http://localhost:8000/metrics | grep prefix_cache
 
 ```mermaid
 graph LR
-    Day7[Day 7 (2026-05-13)<br/>vLLM hello world<br/>Qwen3.6-27B-FP8 跑通] --> Day17[Day 17 (2026-05-23)<br/>NVFP4 量化模型<br/>同步部署到 Coding Agent (如成功)]
-    Day17 --> Day20[Day 20 (2026-05-26)<br/>MTP / P-EAGLE<br/>同步开启]
-    Day20 --> Day27[Day 27 (2026-06-02)<br/>稳定运行 1 周]
+    Day7[Day 7 (2026-10-16)<br/>vLLM hello world<br/>Qwen3.8-27B-FP8 跑通] --> Day17[Day 17 (2026-10-26)<br/>NVFP4 量化模型<br/>同步部署到 Coding Agent (如成功)]
+    Day17 --> Day20[Day 20 (2026-10-29)<br/>MTP / P-EAGLE<br/>同步开启]
+    Day20 --> Day27[Day 27 (2026-11-05)<br/>稳定运行 1 周]
     Day27 --> Blog[Day 30+ 博客发布<br/>简历加分]
 
     style Blog fill:#d4edda
 ```
 
 **关键节点：**
-- Day 7 后：本地 vLLM + Qwen3.6-27B-FP8 baseline 跑通
+- Day 7 后：本地 vLLM + Qwen3.8-27B-FP8 baseline 跑通
 - Day 17 后：本地 Coding Agent 完全替代 Copilot（FP8 baseline；NVFP4 视 Day 17 是否成功）
 - Day 21 后：开 MTP / P-EAGLE，速度起飞
 - Day 30 后：稳定使用，可写博客
