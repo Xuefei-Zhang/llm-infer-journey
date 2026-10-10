@@ -56,7 +56,7 @@ graph TD
 - [x] vLLM 已装 → v0.21.0（`~/deploy/vllm-prod/.venv`），生产 @ 9070 稳定运行
 - [x] 学习 venv → **直接复用生产 venv**（vllm 0.21.0 + torch 2.11.0+cu130 + triton 3.6.0 齐全），不必另建（避免重复占内存，30GB RAM 偏紧）
 - [x] Nsight 已装 → nsys 2025.6.3.541 + ncu 2026.1.1（`/usr/local/cuda/bin/`）
-- [ ] push 本地 4 个 re-baseline commit 到 GitHub（origin 已配置 `Xuefei-Zhang/llm-infer-journey`，本地领先 `3126cd0`）—— **待你拍板再推**
+- [x] push 本地 re-baseline commit 到 GitHub（2026-10-10 已推 `3126cd0..b18f303` → `Xuefei-Zhang/llm-infer-journey`）
 
 ### 下午（4h）：写第一个 CUDA kernel
 
