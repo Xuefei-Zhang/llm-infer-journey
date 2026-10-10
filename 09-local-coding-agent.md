@@ -48,9 +48,9 @@ graph TD
     P6[PRO 6000 Blackwell Workstation 96GB<br/>1792 GB/s · sm_120 · 600W]
 
     P6 --> Plan1[甜点配置<br/>Qwen3.8-27B-FP8]
-    Plan1 --> P1A[模型 ~27 GB<br/>剩余 ~65 GB 给 KV + activation]
-    P1A --> P1B[KV cache: 256K context<br/>FP8 KV，hybrid 下仅 ~8.4 GB<br/>+ 4 路并发足够]
-    P1B --> P1C[Decode 50-66 tps 理论<br/>实测带 prefix cache 可飙到 80+ tps<br/>TTFT < 1s]
+    Plan1 --> P1A[模型 ~29 GB<br/>剩余 ~67 GB 给 KV + activation]
+    P1A --> P1B[KV cache: 256K context<br/>FP8 KV，hybrid 下仅 ~8.6 GB<br/>+ 4 路并发足够]
+    P1B --> P1C[Decode 50-62 tps 理论<br/>实测带 prefix cache 可飙到 80+ tps<br/>TTFT < 1s]
     P1C --> P1D[体验 vs Copilot: 90-95%]
 
     P6 --> Plan2[豪华配置<br/>Qwen3.8-27B bf16 VL 满血]
@@ -58,7 +58,7 @@ graph TD
     P2A --> P2B[Coding Agent 主线不用，仅供研究]
 
     P6 --> Plan3[激进配置<br/>NVFP4 量化版 (Day 17 自产)]
-    Plan3 --> P3A[~14 GB 权重 → 80GB 给 KV<br/>但需自验 Blackwell sm_120 NVFP4 兼容性<br/>sm_120 走 mma.sync.block_scale，非 sm_100 tcgen05]
+    Plan3 --> P3A[理论 ~14 GB 权重 → 80GB 给 KV<br/>(磁盘实测官方 NVFP4 = 22G)<br/>但需自验 Blackwell sm_120 NVFP4 兼容性<br/>sm_120 走 mma.sync.block_scale，非 sm_100 tcgen05]
 
     style Plan1 fill:#d4edda
 ```
@@ -85,7 +85,7 @@ LOG_DIR=$HOME/logs/vllm
 mkdir -p "$LOG_DIR"
 
 MODEL=/home/xuefeiz2/models/Qwen3.8-27B-FP8
-MAX_LEN=262144      # 256K context（hybrid 架构 + FP8 KV，实际 KV 仅 ~8.4 GB）
+MAX_LEN=262144      # 256K context（hybrid 架构 + FP8 KV，实际 KV 仅 ~8.6 GB）
 GPU_UTIL=0.92
 KV_DTYPE=fp8
 
@@ -304,8 +304,8 @@ docker compose -f vllm/examples/online_serving/prometheus_grafana/docker-compose
 
 ```
 配置：PRO 6000 96GB + Qwen3.8-27B-FP8 + 32K KV cache (FP8)
-模型显存读取量 ≈ 27 GB（FP8 权重）+ KV 部分（hybrid 下 32K 仅 ~1 GB）
-理论 Decode TPS ≈ 1792 / 28 ≈ 64 tps
+模型显存读取量 ≈ 29 GB（FP8 权重实测）+ KV 部分（hybrid 下 32K 仅 ~1.1 GB）
+理论 Decode TPS ≈ 1792 / 30 ≈ 60 tps
 实测目标（含 prefix cache 命中）= 60-80 tps（Coding Agent 流畅）
 
 启用 MTP / P-EAGLE 后：

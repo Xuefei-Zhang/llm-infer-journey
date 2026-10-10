@@ -79,12 +79,12 @@ python -c "import torch; print(torch.cuda.is_available(), torch.cuda.get_device_
 
 ### 3.1 模型权重
 
-| 模型 | 精度 | 权重显存 | 用途 |
+| 模型 | 精度 | 磁盘体积(实测) | 用途 |
 |---|---|---|---|
-| Qwen3.8-27B | bf16 (VL) | ~54 GB | Week 3 Hybrid SSM / 多模态实验 |
-| **Qwen3.8-27B-FP8** | **FP8** | **~27 GB** | **Week 1-4 主力** |
-| Qwen3.8-27B (NVFP4) | NVFP4 | ~14 GB | Week 3 Day 17-18 自量化 |
-| Qwen3.6-35B-A3B-FP8 | FP8 (MoE) | ~35 GB | Week 3 MoE 备选 |
+| Qwen3.8-27B (bf16 VL) | bf16 | ⚠️ 本地无（~54GB 需下载） | Week 3 Hybrid SSM / 多模态实验 |
+| **Qwen3.8-27B-FP8** | **FP8** | **29G**（66 shard，`~/models/Qwen3.8-27B-FP8`） | **Week 1-4 主力**（生产 @9070） |
+| Qwen3.8-27B (NVFP4) | NVFP4 | 22G（官方下载，非自产；已知 GPU hang 故障） | Week 3 Day 17 根因定位对象 |
+| Qwen3.6-35B-A3B | MoE，本地有 **GGUF Q4_K_XL (21G)** + **NVFP4 (22G)**，**无 FP8** | 21~22G | Week 3 MoE 备选（用 GGUF/NVFP4，非 FP8） |
 
 ### 3.2 KV cache 预算（Qwen3.8-27B 真实结构）
 
@@ -97,12 +97,14 @@ KV (FP8)  per token = 32 KB
 KV (INT4, TurboQuant) per token = 8 KB
 ```
 
-| Context | KV (FP8) | 与 27GB 权重合计 | 96GB 余量 |
+| Context | KV (FP8, 32KB/tok) | 与 29G 权重合计 | 96GB 余量 |
 |---|---|---|---|
-| 32K   | 1.0 GB | 28 GB | 68 GB |
-| 128K  | 4.2 GB | 31 GB | 65 GB |
-| 256K  | 8.4 GB | 35 GB | 61 GB |
-| 1M    | 33 GB  | 60 GB | 36 GB |
+| 32K   | 1.1 GB | 30 GB | 66 GB |
+| 128K  | 4.3 GB | 33 GB | 63 GB |
+| 256K  | 8.6 GB | 38 GB | 58 GB |
+| 1M    | 34 GB  | 63 GB | 33 GB |
+
+> （2026-10-10 复核：KV 列用 2×16×4×256×N/1e9 精确重算，口径与原表一致；权重列由 ~27GB 理论值改为 29G 实测 checkpoint 体积）
 
 > 💡 hybrid attention 让 KV cache 比纯 dense 模型小 4 倍，96GB + FP8 KV 可轻松跑 1M context 学习实验。
 
@@ -110,7 +112,7 @@ KV (INT4, TurboQuant) per token = 8 KB
 
 | 维度 | Copilot | PRO 6000 + Qwen3.8-27B-FP8 |
 |---|---|---|
-| Decode 速度（理论上限）| 50 tps | 1792 / 27 ≈ **66 tps** ✅ |
+| Decode 速度（理论上限）| 50 tps | 1792 / 29 ≈ **62 tps** ✅ |
 | 上下文 | 64-128K | **256K+** ✅ |
 | 24h 无限 | ❌ | ✅ |
 | 隐私 | ❌ | ✅ |

@@ -279,14 +279,14 @@ graph LR
 
 KV cache 显存 (GB/seq) = 2 × Layers_full_attn × KV_heads × HeadDim × SeqLen × 字节数
 
-  ⚠️ Qwen3.8-27B 真实结构（来自 ~/models/Qwen3.8-27B/config.json）:
+  ⚠️ Qwen3.8-27B 真实结构（来自 ~/models/Qwen3.8-27B-FP8/config.json）:
      - 64 层中只有 16 层是 full_attention（其余 48 层是 linear_attention，KV state O(1)）
      - GQA: 4 KV heads, head_dim 256
-     - 32K context FP8 KV: 2 × 16 × 4 × 256 × 32768 × 1 byte ≈ 1.0 GB
-     - 256K context FP8 KV: ≈ 8.4 GB
+     - 32K context FP8 KV: 2 × 16 × 4 × 256 × 32768 × 1 byte ≈ 1.1 GB
+     - 256K context FP8 KV: ≈ 8.6 GB
 
   对比纯 dense（假设 64 层全 full_attention）:
-     - 32K FP8 KV: 4.2 GB（× 4 倍于 hybrid）
+     - 32K FP8 KV: 4.3 GB（× 4 倍于 hybrid）
 
 激活值（推理时小，暂忽略）
 ```
@@ -294,9 +294,9 @@ KV cache 显存 (GB/seq) = 2 × Layers_full_attn × KV_heads × HeadDim × SeqLe
 **任务：用 Python 写 `model_memory_calculator.py`**
 
 ```python
-def calc_memory(params_b, layers_full_attn, kv_heads, head_dim,
+def calc_memory(params_gb, layers_full_attn, kv_heads, head_dim,
                 weight_bits=8, kv_bits=8, seq_len=32768, batch=1):
-    weight_gb = params_b * weight_bits / 8
+    weight_gb = params_gb  # 直接传 checkpoint 实测体积（29G），比 params_b*bits/8 准
     kv_per_seq_gb = (2 * layers_full_attn * kv_heads * head_dim
                      * seq_len * (kv_bits/8) / 1e9)
     kv_total_gb = kv_per_seq_gb * batch
@@ -307,10 +307,10 @@ def calc_memory(params_b, layers_full_attn, kv_heads, head_dim,
         "total_gb": weight_gb + kv_total_gb,
     }
 
-# Qwen3.8-27B-FP8 在 PRO 6000 (96GB) 上跑 256K context, 4 并发？
-print(calc_memory(27, 16, 4, 256, weight_bits=8, kv_bits=8,
+# Qwen3.8-27B-FP8 (checkpoint 实测 29G) 在 PRO 6000 (96GB) 上跑 256K context, 4 并发？
+print(calc_memory(29, 16, 4, 256, weight_bits=8, kv_bits=8,
                   seq_len=256*1024, batch=4))
-# → weight 27GB + KV (8.4×4=34GB) = 61GB ✓ 余 35GB
+# → weight 29GB + KV (8.6×4≈34.4GB) ≈ 63.4GB ✓ 余 ~33GB
 ```
 
 ### 下午（4h）：算力/延迟公式（Roofline 模型）
@@ -324,7 +324,7 @@ graph TD
 
     subgraph Decode 阶段
         D1[访存密集型<br/>Memory-bound] --> D2[公式: TPS ≈ Bandwidth / ModelSize]
-        D2 --> D3[27B FP8 = 27GB<br/>PRO 6000: 1792 / 27 ≈ 66 tps 上限]
+        D2 --> D3[27B FP8 ≈ 29GB(实测)<br/>PRO 6000: 1792 / 29 ≈ 62 tps 上限]
     end
 
     style P1 fill:#fff3cd
@@ -446,7 +446,7 @@ evalscope perf \
 ### Checkpoint
 - [ ] vLLM 跑通 Qwen3.8-27B-FP8
 - [ ] 跑出 batch=1/16/64 的 throughput 对比表
-- [ ] 测出本机 TTFT、TPOT 数值（对照 Day 5 理论上限 66 tps）
+- [ ] 测出本机 TTFT、TPOT 数值（对照 Day 5 理论上限 62 tps）
 - [ ] 截图三种 benchmark 工具的输出
 - [ ] **[jobs] T-001 ✓**: 冷启动三段耗时记录到 progress.md
 - [ ] **[jobs] T-002 ✓**: TTFT vs TPS 曲线图 commit 到 repo
@@ -495,7 +495,7 @@ llm-infer-journey/
 3. GEMM 5 个版本性能对比 + 火焰图（带数字、带图）
 4. FlashAttention：为什么是 IO 优化而不是算法优化（500 字）
 5. LLM 推理两阶段：Prefill compute-bound vs Decode memory-bound
-6. Roofline 模型实战：算 PRO 6000 上 Qwen3.8-27B-FP8 的理论上限（66 tps）+ 实测对照
+6. Roofline 模型实战：算 PRO 6000 上 Qwen3.8-27B-FP8 的理论上限（62 tps）+ 实测对照
 7. vLLM 部署初体验 + 三种 benchmark 工具对比
 8. 下周计划
 

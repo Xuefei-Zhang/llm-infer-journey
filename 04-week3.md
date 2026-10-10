@@ -306,7 +306,7 @@ graph LR
 
 ```bash
 # 注意：Qwen3.8-27B 是 hybrid 架构（16 层 full attention + 48 层 linear attention）
-# KV cache 主要在 16 层 full attention 上，FP8 KV 时 256K context 已经只占 ~8.4 GB
+# KV cache 主要在 16 层 full attention 上，FP8 KV 时 256K context 已经只占 ~8.6 GB
 # 因此 TurboQuant 在你的本机上"显存收益"没那么夸张，更多是"能不能跑通 + 精度评估"
 vllm serve /home/xuefeiz2/models/Qwen3.8-27B-FP8 \
   --kv-cache-dtype <实际名称以 v0.21.0 文档为准> \

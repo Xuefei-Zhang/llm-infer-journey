@@ -26,7 +26,7 @@
 
 ## 三、参考仓库（STUDY，NOT COPY）
 
-- `~/3rd/llm_inference/vllm` — vLLM 源码 clone（含 v0.21.0 tag，HEAD 为 v0.23.1rc0 系自编 16 个 .so）。源码阅读参考，用 `git checkout v0.21.0` 对齐生产。
+- `~/3rd/llm_inference/vllm` — vLLM 源码 clone（含 v0.21.0 tag，HEAD 为 v0.23.1rc0 系自编 20 个 .so（2025-07-06 构建））。源码阅读参考，用 `git checkout v0.21.0` 对齐生产。
 - `~/3rd/nano-vllm` — 教学级 ~1,200 行 vLLM clone（**Day 22 前需 clone**，仓库 https://github.com/GeeeekExplorer/nano-vllm）。编码参考，详见 `06-mini-vllm-design.md §十二`。
 - ⚠️ `~/3rd/vllm`（无 llm_inference 前缀）实为 KVCache 学习笔记目录，**不是源码**，别当成 vLLM 生产级源码读。
 
