@@ -366,22 +366,34 @@ else:
 ### 上午（4h）：vLLM 安装与首次部署（[jobs] T-001）
 
 ```bash
-# 生产 venv 已装 vllm 0.21.0（~/deploy/vllm-prod/.venv），学习用可另建 venv 装 0.21.0，直接部署 FP8 主力模型
+# 生产 venv 已装 vllm 0.21.0（~/deploy/vllm-prod/.venv）。生产实例已在 @9070 跑，
+# Day 6 直接对它发请求即可，不必另起实例占显存。以下为生产实际启动参数（/proc/PID/cmdline 实测）：
 vllm serve ~/models/Qwen3.8-27B-FP8 \
-  --served-model-name Qwen3.8-27B-FP8 \
-  --max-model-len 65536 \
-  --gpu-memory-utilization 0.9 \
+  --attention-backend TRITON_ATTN \
+  --host 0.0.0.0 --port 9070 \
+  --chat-template ~/models/Qwen3.8-27B-FP8/chat_template.jinja \
+  --tokenizer-mode auto \
+  --tensor-parallel-size 1 \
+  --served-model-name Qwen3.6-27B-FP8 \
+  --max-model-len 262144 \
+  --kv-cache-dtype fp8 \
+  --quantization fp8 \
+  --tool-call-parser qwen3_coder \
+  --reasoning-parser qwen3 \
+  --enable-chunked-prefill \
   --enable-prefix-caching \
-  --kv-cache-dtype auto
+  --trust-remote-code
 
-# 客户端测试（OpenAI 兼容）
-curl http://localhost:8000/v1/chat/completions \
+# 客户端测试（OpenAI 兼容）—— ⚠️ model 字段必须 = served-model-name（旧名 Qwen3.6-27B-FP8）
+curl http://localhost:9070/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "Qwen3.8-27B-FP8",
+    "model": "Qwen3.6-27B-FP8",
     "messages": [{"role": "user", "content": "解释 PagedAttention"}]
   }'
 ```
+
+> ⚠️ **API 模型名陷阱（2026-10-10 实测）**：生产服务 @9070 的 served-model-name 是 **`Qwen3.6-27B-FP8`**（旧名），权重目录才是 3.8。用 `Qwen3.8-27B-FP8` 调用实测返回 **404 `The model does not exist`**。Day 6 benchmark 直接对生产实例调 @9070 + 旧名，不要另起实例占显存。
 
 > 💡 vLLM v0.21.0 已原生支持 `qwen3_5` 架构（即 Qwen3.8 系列），代码在 `vllm/model_executor/models/qwen3_5.py` + `qwen3_5_mtp.py`。
 
