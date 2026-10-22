@@ -1,0 +1,287 @@
+{
+  "version": "1.0.0",
+  "gitCommitHash": "c1708dbe189879b2687d76b68a5aa5a7a357c1c8",
+  "generatedAt": "2026-10-12T05:13:49.043Z",
+  "files": {
+    ".gitignore": {
+      "filePath": ".gitignore",
+      "contentHash": "fca20b1f9e6674499a538d1ecb71ae0bc6f01273b892a87e31adc78a502694ff",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 72,
+      "hasStructuralAnalysis": false
+    },
+    "01-hardware.md": {
+      "filePath": "01-hardware.md",
+      "contentHash": "4f56b8c5c6e4de5ce7d972a1497ee12207d8ce7e5c009a73a80e929dd1d77f5f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 227,
+      "hasStructuralAnalysis": true
+    },
+    "02-week1.md": {
+      "filePath": "02-week1.md",
+      "contentHash": "03867098765c5b56131c0f39e800a54d51ea0ad6b6a4e9306979a4c06a1d611b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 550,
+      "hasStructuralAnalysis": true
+    },
+    "03-week2.md": {
+      "filePath": "03-week2.md",
+      "contentHash": "5b950d7a6424f9e22d270936d5d19ca9ae81d5cf43093c9c8789d28fdf8f6ace",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 508,
+      "hasStructuralAnalysis": true
+    },
+    "04-week3.md": {
+      "filePath": "04-week3.md",
+      "contentHash": "84cd5971dc652d66677b8148dd2adda6e6a145e0713a74d65e2279d9f7e09607",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 495,
+      "hasStructuralAnalysis": true
+    },
+    "05-week4.md": {
+      "filePath": "05-week4.md",
+      "contentHash": "86f3960ca142f89e0de5b8613501f7d6e6928aa190eece8089e1f07e759a2206",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 603,
+      "hasStructuralAnalysis": true
+    },
+    "06-mini-vllm-design.md": {
+      "filePath": "06-mini-vllm-design.md",
+      "contentHash": "6bb59f8c67e432098f50e04991f6d3e990d838f615a428e6e6512db635795dc5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 623,
+      "hasStructuralAnalysis": true
+    },
+    "07-resources.md": {
+      "filePath": "07-resources.md",
+      "contentHash": "bf1a6dce084c7ecafd105963fa3cd7d18a957505f9a0c60c70222db9d0e67cbc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 251,
+      "hasStructuralAnalysis": true
+    },
+    "08-job-strategy.md": {
+      "filePath": "08-job-strategy.md",
+      "contentHash": "88dd604d76783b3327db46ffabc66092004192a0c215471d1ea2983ff180fcc0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 401,
+      "hasStructuralAnalysis": true
+    },
+    "09-local-coding-agent.md": {
+      "filePath": "09-local-coding-agent.md",
+      "contentHash": "671facd90e334a100b2e5587fe2433c1c72e3cb8528abfd72e11835d3d0ce8e3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 434,
+      "hasStructuralAnalysis": true
+    },
+    "AGENTS.md": {
+      "filePath": "AGENTS.md",
+      "contentHash": "f681c75a9e5e4f0ca272ad5ef524e90d3f60e33958489984ee013d86e5f00dc4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 77,
+      "hasStructuralAnalysis": true
+    },
+    "CLAUDE.md": {
+      "filePath": "CLAUDE.md",
+      "contentHash": "9d2ddcf9fe73c0761741fc89380048e191f8d0ee87e24cf4579baf8ad9144d69",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 6,
+      "hasStructuralAnalysis": true
+    },
+    "COACH.md": {
+      "filePath": "COACH.md",
+      "contentHash": "e09c3a0eaca4782d45aac44d8802e5b09c538a30b64c6aa0cacbfb561eb77dbb",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 301,
+      "hasStructuralAnalysis": true
+    },
+    "README.md": {
+      "filePath": "README.md",
+      "contentHash": "20dd592b33852ca007dc1efd6bced8a5f2d65967d2d6c3139c6d3fefc3cf5f63",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 180,
+      "hasStructuralAnalysis": true
+    },
+    "analysis-report.html": {
+      "filePath": "analysis-report.html",
+      "contentHash": "62d54b4d241734770c3aa9a9b25cd91a212ec4c01c43ae0e96712bfcb4ecf366",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 652,
+      "hasStructuralAnalysis": false
+    },
+    "jobs/README.md": {
+      "filePath": "jobs/README.md",
+      "contentHash": "b16ddd127eff780052ff76db5074f17a1f55b584c3af6e38b16fc4eadaec2440",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 53,
+      "hasStructuralAnalysis": true
+    },
+    "jobs/_raw/librarian-blogs-backlog-2026-W19.md": {
+      "filePath": "jobs/_raw/librarian-blogs-backlog-2026-W19.md",
+      "contentHash": "ebcd8dd16a0a145033bb5eb8194642c66252a9ffaf1ff9434970f471c047cedf",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 996,
+      "hasStructuralAnalysis": true
+    },
+    "jobs/_raw/librarian-blogs-dump-2026-W19.md": {
+      "filePath": "jobs/_raw/librarian-blogs-dump-2026-W19.md",
+      "contentHash": "803587deb063086df038fd2e6129eafbc817e01e2ada1aed080bd62beba504eb",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 603,
+      "hasStructuralAnalysis": true
+    },
+    "jobs/_raw/librarian-jd-dump-2026-W19.md": {
+      "filePath": "jobs/_raw/librarian-jd-dump-2026-W19.md",
+      "contentHash": "a2eebe631843be8d06bb47d9abd43a0370280687611a0535a49cc33d99ed4bf4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1231,
+      "hasStructuralAnalysis": true
+    },
+    "jobs/_raw/librarian-jd-dump-v1-2026-W19.md": {
+      "filePath": "jobs/_raw/librarian-jd-dump-v1-2026-W19.md",
+      "contentHash": "92163f48dcd4fa186b3dcf0693d29b82463458e8ffa16526be27fac6b37c6282",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 461,
+      "hasStructuralAnalysis": true
+    },
+    "jobs/jobs_backlog.md": {
+      "filePath": "jobs/jobs_backlog.md",
+      "contentHash": "1b42aeef9ec655aed3a1a7b3e40a8eeda458db0040bedacecfb56c36315a3f51",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 239,
+      "hasStructuralAnalysis": true
+    },
+    "jobs/jobs_taxonomy.md": {
+      "filePath": "jobs/jobs_taxonomy.md",
+      "contentHash": "89434a908876c7b13bb05f16d9aa766e2e20dacab18806714b863b74cae995f0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 130,
+      "hasStructuralAnalysis": true
+    },
+    "jobs/postmortems/_template.md": {
+      "filePath": "jobs/postmortems/_template.md",
+      "contentHash": "1b0340b30b920e8944cc2ae5f786f417118ff446a9a493204cb49143eaeebc83",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 43,
+      "hasStructuralAnalysis": true
+    },
+    "jobs/tasks/_template.md": {
+      "filePath": "jobs/tasks/_template.md",
+      "contentHash": "25c44429568adefd105debbf0184f51e60118a299bbffbc59a090d8c51f28fce",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 55,
+      "hasStructuralAnalysis": true
+    },
+    "jobs/weekly-radar/2026-W19.md": {
+      "filePath": "jobs/weekly-radar/2026-W19.md",
+      "contentHash": "c41087bf2a3d1aefba5869e14848c74539f3585d4c6543e1f6c6b0dfe473c2f4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 38,
+      "hasStructuralAnalysis": true
+    },
+    "progress.md": {
+      "filePath": "progress.md",
+      "contentHash": "7dc9fbb417b94493e66a2c1a0ef777ce08ad8fbbad126bac5ea5ae34cd914928",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 94,
+      "hasStructuralAnalysis": true
+    },
+    "project-overview.html": {
+      "filePath": "project-overview.html",
+      "contentHash": "c2bff400879ed9dbe358d187d075ee5d7f77e2f3c6ce62311e14853c12f89389",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 368,
+      "hasStructuralAnalysis": false
+    },
+    "week1/day1/vec_add.cu": {
+      "filePath": "week1/day1/vec_add.cu",
+      "contentHash": "be9b714ad5467b30f91e7d08b63711f7eb9a52103adf0359f0bd48812300294d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 59,
+      "hasStructuralAnalysis": false
+    }
+  }
+}

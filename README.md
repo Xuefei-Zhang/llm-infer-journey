@@ -4,9 +4,9 @@
 >
 > **方法**：30 天 × 8h/天 = **240 小时实打实训练**，输出 **3 个 GitHub portfolio 项目 + 4 篇技术博客 + 1 个 vLLM PR**。
 >
-> **当前日期**：2026-10-10（re-baseline 后 Day 1 = 2026-10-10 ~ Day 30 = 2026-11-08）
+> **当前日期**：2026-10-22（v3 re-baseline：Day 1 = 2026-10-22 ~ Day 30 = 2026-11-20）
 >
-> **规划版本**：v2.2（2026-10-10 re-baseline；基于 vLLM v0.21.0、DeepSeek V4、Qwen3.8-27B-FP8、Blackwell sm_120；本地 PRO 6000 Workstation 96GB 单卡主线）
+> **规划版本**：v3.0（2026-10-22 全计划重启；基于 vLLM v0.21.0、DeepSeek V4、Qwen3.8-27B-FP8、Blackwell sm_120；本地 PRO 6000 Workstation 96GB 单卡主线）
 
 ---
 
@@ -168,7 +168,7 @@ mindmap
 - [ ] ⚠️ 驱动 NVML mismatch：今日 09:15 apt 升级 595.71→595.91（仅用户态）。**只影响 `nvidia-smi` 监控工具**（报 version mismatch），CUDA 计算栈（torch/nvcc kernel/nsys）实测正常，Day 1 不阻塞；要修监控工具重启即可
 - [ ] DDR5 内存 ~30GB 偏紧（Week 4 mini-vLLM 需 ≥64GB）
 
-**Day 1（2026-10-10 周六）：** 开始 [02-week1.md](./02-week1.md) 的 Day 1 任务（环境校准 + 第一个 CUDA kernel）
+**Day 1（2026-10-22 周四，v3 re-baseline）：** 环境校准继承 10-11 结果（零阻塞），今日任务 = vec_add.cu 四个 TODO + nsys + 面试题 Q23（Warp divergence），见 [02-week1.md](./02-week1.md) 的 Day 1
 
 ---
 

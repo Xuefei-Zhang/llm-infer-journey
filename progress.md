@@ -91,3 +91,39 @@ Day 1 原定 2026-05-07，实际 5 个月未启动。今日全面重调研环境
 ---
 
 <!-- 后续每天追加 -->
+
+## Re-baseline v3 - 2026-10-22（周四）全计划重启
+
+### 背景
+- 10-10 re-baseline v2：Day 1 在 10-11 完成环境部分（零阻塞）+ vec_add.cu 骨架（4 TODO），之后 10-12 ~ 10-21 连续 10 天沉默
+- notes/ 的 6 个月主计划 9/4 已死亡，reviews/ decisions/ reads/ postmortems/ 零产出
+- 今日 2026-10-22 用户宣布全计划重启
+
+### 决议
+- **日期重排**：Day 1 = 2026-10-22（周四）~ Day 30 = 2026-11-20（周五）
+- **Day 1（今日）任务**：环境校准继承 10-11（不重做）；今日必须清掉 ① vec_add.cu 四个 TODO ② nsys 看 kernel 执行时间 ③ 答面试题 Q23（Warp divergence）
+- **主线**：30 天冲刺不变；engine = Week 4 mini-vLLM 归宿（Day 22 启动）；v4l2-probe = side quest（周末才有，不阻塞主线）
+- **重启规则**：缺勤 Day N 顺延不补做；连续 3 天零 commit → 教练 cron 严重追问；重启不是死亡宣判
+- **总计划**：新主计划在 ~/code/notes/master-plan-v3.md
+
+---
+
+## Day 1（重启）- 2026-10-22（周四）
+
+### 计划：[02-week1.md Day 1](./02-week1.md#day-1)（环境部分继承 10-11 ✅，kernel + 面试题部分必须完成）
+
+### 面试题
+- 今日：Q23（Warp divergence）— 是什么？如何规避？
+- 自答摘要：
+
+### 完成
+- [x] 环境校准（继承 10-11，零阻塞）
+- [ ] vec_add.cu 四个 TODO + 逐元素校验
+- [ ] nsys profile 看到 kernel 执行时间
+- [ ] Q23 自答通过教练拷问
+
+### 卡点
+-
+
+### 明日计划
+- Day 2（10-23）：GEMM v1 naive + v2 shared memory tiling + Q21/Q22

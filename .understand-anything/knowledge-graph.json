@@ -1,0 +1,1100 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "llm-infer-journey",
+    "languages": [
+      "markdown",
+      "cuda",
+      "html",
+      "gitignore"
+    ],
+    "frameworks": [
+      "Mermaid",
+      "vLLM（研究对象）",
+      "CUDA",
+      "Triton（研究对象）"
+    ],
+    "description": "30 天转型冲刺计划仓库：Intel ISP/IPU 系统软件工程师（7 年）→ 国内头部大模型推理工程师（字节 AML / Moonshot / DeepSeek）。以 RTX PRO 6000 Blackwell 96GB（sm_120）+ Qwen3.8-27B-FP8 为主线，含逐日课程、Mini-vLLM 设计、量化/投机解码、求职策略、本地 Coding Agent 部署，以及一个 jobs/ 真实任务 backlog 子项目。",
+    "analyzedAt": "2026-10-12T05:54:50.980241+00:00",
+    "gitCommitHash": "c1708dbe189879b2687d76b68a5aa5a7a357c1c8"
+  },
+  "nodes": [
+    {
+      "id": "document:README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "README.md",
+      "summary": "30 天转型冲刺总览：ISP/IPU 系统软件工程师 → LLM 推理工程师的路径、4 周里程碑 gantt、硬件方案摘要、文档导航表、信息时效性约定与立即行动清单。",
+      "tags": [
+        "overview",
+        "roadmap",
+        "entry-point",
+        "mermaid"
+      ],
+      "complexity": "moderate",
+      "fileCategory": "docs"
+    },
+    {
+      "id": "document:01-hardware.md",
+      "type": "document",
+      "name": "01-hardware.md",
+      "filePath": "01-hardware.md",
+      "summary": "硬件落地档案与验证手册：RTX PRO 6000 Blackwell 96GB（sm_120）采购决策、PCIe/CUDA 工具链验证、Qwen3.8-27B-FP8 显存与 KV cache 预算、sm_120 vs sm_100 差异、BIOS 必设项、风险与电源。",
+      "tags": [
+        "hardware",
+        "blackwell",
+        "sm120",
+        "gpu",
+        "vram-budget",
+        "decision-log"
+      ],
+      "complexity": "complex",
+      "fileCategory": "docs"
+    },
+    {
+      "id": "document:02-week1.md",
+      "type": "document",
+      "name": "02-week1.md",
+      "filePath": "02-week1.md",
+      "summary": "Week 1（Day 1-7）逐日计划：本地 CUDA 工具链校准、第一个 kernel、GEMM 朴素/共享内存/进阶+Tensor Core、FlashAttention 原理与 softmax、LLM 显存/算力/延迟公式（Roofline）、vLLM 部署 hello world + benchmark。",
+      "tags": [
+        "week1",
+        "cuda",
+        "gemm",
+        "tensor-core",
+        "flash-attention",
+        "roofline",
+        "llm-inference"
+      ],
+      "complexity": "complex",
+      "fileCategory": "docs"
+    },
+    {
+      "id": "document:03-week2.md",
+      "type": "document",
+      "name": "03-week2.md",
+      "filePath": "03-week2.md",
+      "summary": "Week 2（Day 8-14）逐日计划：Anatomy of vLLM 精读、Engine+Scheduler 源码、Model Runner V2 与 CUDA Graph、PagedAttention+KV Cache Manager+Prefix Caching、MLA+FA4 实战、Disagg Serving、本地部署与 vLLM PR。",
+      "tags": [
+        "week2",
+        "vllm",
+        "source-code",
+        "scheduler",
+        "model-runner",
+        "paged-attention",
+        "mla",
+        "fa4"
+      ],
+      "complexity": "complex",
+      "fileCategory": "docs"
+    },
+    {
+      "id": "document:04-week3.md",
+      "type": "document",
+      "name": "04-week3.md",
+      "filePath": "04-week3.md",
+      "summary": "Week 3（Day 15-21）逐日计划：Triton 入门、LLM fused kernel、NVFP4 量化部署、FP8+Marlin GEMM、TurboQuant 2bit KV cache、P-EAGLE 投机解码、Hybrid SSM 模型推理。",
+      "tags": [
+        "week3",
+        "triton",
+        "fused-kernel",
+        "quantization",
+        "nvfp4",
+        "fp8",
+        "turboquant",
+        "speculative-decoding",
+        "hybrid-ssm"
+      ],
+      "complexity": "complex",
+      "fileCategory": "docs"
+    },
+    {
+      "id": "document:05-week4.md",
+      "type": "document",
+      "name": "05-week4.md",
+      "filePath": "05-week4.md",
+      "summary": "Week 4（Day 22-30）逐日计划：Mini-vLLM 项目启动（对照 nano-vllm 实现 Tokenizer/Model Loading）、PagedAttention、Continuous Batching Scheduler、FA4 接入+MLA 骨架、Benchmark 对标 vLLM、简历投递+面试冲刺。",
+      "tags": [
+        "week4",
+        "mini-vllm",
+        "project",
+        "nano-vllm",
+        "paged-attention",
+        "scheduler",
+        "benchmark",
+        "job-hunt"
+      ],
+      "complexity": "complex",
+      "fileCategory": "docs"
+    },
+    {
+      "id": "document:06-mini-vllm-design.md",
+      "type": "document",
+      "name": "06-mini-vllm-design.md",
+      "filePath": "06-mini-vllm-design.md",
+      "summary": "Mini-vLLM 架构设计文档：项目定位、技术栈、目录结构、整体架构图、核心模块设计（Request/KV Cache Manager/Scheduler/LLM Engine/Attention Backend/OpenAI 兼容 Server）、5 天开发顺序、benchmark 设计、nano-vllm 逐模块对照表、风险与兜底。",
+      "tags": [
+        "design",
+        "mini-vllm",
+        "architecture",
+        "nano-vllm",
+        "module-design"
+      ],
+      "complexity": "complex",
+      "fileCategory": "docs"
+    },
+    {
+      "id": "document:07-resources.md",
+      "type": "document",
+      "name": "07-resources.md",
+      "filePath": "07-resources.md",
+      "summary": "完整学习资源清单（按优先级与周）：论文、博客/教程、书、代码仓库（精读/参考/教学分级）、视频课程、高信噪比人物 Twitter/Blog、社区、面试前突击包、英文术语速查。",
+      "tags": [
+        "resources",
+        "references",
+        "papers",
+        "books",
+        "tutorials",
+        "glossary"
+      ],
+      "complexity": "moderate",
+      "fileCategory": "docs"
+    },
+    {
+      "id": "document:08-job-strategy.md",
+      "type": "document",
+      "name": "08-job-strategy.md",
+      "filePath": "08-job-strategy.md",
+      "summary": "求职策略全集：目标公司画像、简历（结构/三个钩子/自我描述三版本/STAR 项目模板）、投递渠道矩阵与内推策略、面试流程与 30 道八股题库（映射到 27 天）、系统设计题、薪资谈判、被拒应对、Week5+ 长期规划、避坑清单、心态管理。",
+      "tags": [
+        "job-strategy",
+        "resume",
+        "interview",
+        "questions",
+        "salary-negotiation",
+        "star"
+      ],
+      "complexity": "complex",
+      "fileCategory": "docs"
+    },
+    {
+      "id": "document:09-local-coding-agent.md",
+      "type": "document",
+      "name": "09-local-coding-agent.md",
+      "filePath": "09-local-coding-agent.md",
+      "summary": "本地 Coding Agent 部署指南：PRO 6000 96GB 跑 Qwen3.8-27B-FP8 替代 GitHub Copilot 的硬件画像、vLLM + OpenAI 兼容 API 启动脚本、systemd 服务化、客户端集成（OpenCode/Cursor/Continue/Claude Code）、性能调优（Prefix Caching/投机解码/max_num_seqs）、与 Copilot 对比、调试与常见 OOM/TTFT 问题。",
+      "tags": [
+        "coding-agent",
+        "vllm-deployment",
+        "openai-api",
+        "systemd",
+        "tuning",
+        "comparison"
+      ],
+      "complexity": "complex",
+      "fileCategory": "docs"
+    },
+    {
+      "id": "document:AGENTS.md",
+      "type": "document",
+      "name": "AGENTS.md",
+      "filePath": "AGENTS.md",
+      "summary": "AI Agent 入口文件（任何编码助手进入本仓库的起点）：仓库定位、硬件关键约束表、参考仓库（vllm/nano-vllm）、文件导航、每日学习流程（6 步）、AI 行为规则摘要（L1-L4）、启动检查清单。",
+      "tags": [
+        "entry-point",
+        "ai-agent",
+        "onboarding",
+        "rules",
+        "navigation"
+      ],
+      "complexity": "moderate",
+      "fileCategory": "docs"
+    },
+    {
+      "id": "document:CLAUDE.md",
+      "type": "document",
+      "name": "CLAUDE.md",
+      "filePath": "CLAUDE.md",
+      "summary": "Claude 专用指针文件：说明全部上下文已并入 AGENTS.md，指示先读 AGENTS.md，再读 COACH.md 与 progress.md。",
+      "tags": [
+        "entry-point",
+        "pointer",
+        "claude"
+      ],
+      "complexity": "simple",
+      "fileCategory": "docs"
+    },
+    {
+      "id": "document:COACH.md",
+      "type": "document",
+      "name": "COACH.md",
+      "filePath": "COACH.md",
+      "summary": "AI 教练行为约束契约：用户画像（7 年 Intel ISP/IPU 背景）、教练模式 7 条铁律（先问学习目标/默认 L1-L2 不代写/先 Why 再 How/费曼反向检查/关联已有知识/诚实标注知识边界/会话末更新 progress）、每日学习流程（面试题先行）、文件操作与 commit/push 规则、典型对话模式 A-D、跨工具一致性、禁做清单、启动检查清单。",
+      "tags": [
+        "coach",
+        "ai-behavior",
+        "pedagogy",
+        "rules",
+        "l1-l4",
+        "feynman"
+      ],
+      "complexity": "complex",
+      "fileCategory": "docs"
+    },
+    {
+      "id": "document:progress.md",
+      "type": "document",
+      "name": "progress.md",
+      "filePath": "progress.md",
+      "summary": "30 天进度跟踪：Day 0 硬件落地记录、re-baseline（2026-10-10 日期重排、主力模型改 Qwen3.8-27B-FP8、vLLM 升 v0.21.0、NVFP4 故障标记）、驱动 NVML mismatch 卡点定位与重启解除、Day 1 打卡模板、文档勘误记录。",
+      "tags": [
+        "progress",
+        "changelog",
+        "checkpoint",
+        "rebaseline",
+        "postmortem"
+      ],
+      "complexity": "moderate",
+      "fileCategory": "docs"
+    },
+    {
+      "id": "file:analysis-report.html",
+      "type": "file",
+      "name": "analysis-report.html",
+      "filePath": "analysis-report.html",
+      "summary": "仓库整体结构与内容的自动分析报告（HTML 单页，自包含），是 llm-infer-journey 的一次快照式分析产物。",
+      "tags": [
+        "report",
+        "html",
+        "analysis",
+        "snapshot"
+      ],
+      "complexity": "moderate",
+      "fileCategory": "markup"
+    },
+    {
+      "id": "file:project-overview.html",
+      "type": "file",
+      "name": "project-overview.html",
+      "filePath": "project-overview.html",
+      "summary": "项目概览与模型部署分析（HTML 单页），覆盖总体画像与 Qwen/vLLM 部署分析。",
+      "tags": [
+        "overview",
+        "html",
+        "deployment"
+      ],
+      "complexity": "moderate",
+      "fileCategory": "markup"
+    },
+    {
+      "id": "config:.gitignore",
+      "type": "config",
+      "name": ".gitignore",
+      "filePath": ".gitignore",
+      "summary": "Git 忽略规则：macOS 元数据、Python 虚拟环境/缓存、模型权重（safetensors/gguf/onnx/checkpoints）、CUDA 编译产物（o/cubin/fatbin/ptx）、IDE、日志与 profiling 报告（nsys/ncu/wandb）、密钥、mini-vLLM 构建产物。",
+      "tags": [
+        "config",
+        "gitignore"
+      ],
+      "complexity": "simple",
+      "fileCategory": "config"
+    },
+    {
+      "id": "document:jobs/README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "jobs/README.md",
+      "summary": "jobs 子项目入口：把 30 天计划之外的「真实大厂 LLM 推理工程师日常 backlog」当作选修/课后实战题的用法、与主计划各阶段的关系表、任务难度 L1-L3 定义、文件清单（谁更新什么）、以及不得违反 COACH 与单机可复现的规则。",
+      "tags": [
+        "jobs",
+        "backlog",
+        "entry-point",
+        "workflow"
+      ],
+      "complexity": "moderate",
+      "fileCategory": "docs"
+    },
+    {
+      "id": "document:jobs/jobs_taxonomy.md",
+      "type": "document",
+      "name": "jobs_taxonomy.md",
+      "filePath": "jobs/jobs_taxonomy.md",
+      "summary": "LLM 推理工程师能力地图：15 个工作域的定义，每个域含「做什么 / 典型 JD 引用 / 公司出现频次（★）/ 本仓库哪些 Day 触及」，来源为 librarian agent 扫描 2025H2-2026 真实 JD。",
+      "tags": [
+        "jobs",
+        "taxonomy",
+        "capability-map",
+        "domains"
+      ],
+      "complexity": "complex",
+      "fileCategory": "docs"
+    },
+    {
+      "id": "document:jobs/jobs_backlog.md",
+      "type": "document",
+      "name": "jobs_backlog.md",
+      "filePath": "jobs/jobs_backlog.md",
+      "summary": "精选 30 条实战任务 backlog（v0.1）：全部可在 PRO 6000 96GB 单机完成，字段含 `[ ] T-XXX [Lx] 标题` → 域 / 估时 / Done definition / 来源 / 关联 Day，上游素材为 librarian JD 转储。",
+      "tags": [
+        "jobs",
+        "backlog",
+        "tasks",
+        "checkbox"
+      ],
+      "complexity": "complex",
+      "fileCategory": "docs"
+    },
+    {
+      "id": "document:jobs/weekly-radar/2026-W19.md",
+      "type": "document",
+      "name": "2026-W19.md",
+      "filePath": "jobs/weekly-radar/2026-W19.md",
+      "summary": "2026-W19 周雷达扫描记录（每周一跑）：扫描 vLLM/SGLang/TRT-LLM blog、arxiv 推理新文、GitHub issue 新 RFC，末尾给出 3-10 条建议加入 backlog 的新任务（用户点头才进）。",
+      "tags": [
+        "jobs",
+        "radar",
+        "weekly",
+        "discovery"
+      ],
+      "complexity": "simple",
+      "fileCategory": "docs"
+    },
+    {
+      "id": "document:jobs/tasks/_template.md",
+      "type": "document",
+      "name": "_template.md",
+      "filePath": "jobs/tasks/_template.md",
+      "summary": "单任务记录模板：复制改名成 T-XXX-<slug>.md，含元数据 / 进度 / 结论字段，一条任务一个文件、做完才闭环。",
+      "tags": [
+        "jobs",
+        "template",
+        "task"
+      ],
+      "complexity": "simple",
+      "fileCategory": "docs"
+    },
+    {
+      "id": "document:jobs/postmortems/_template.md",
+      "type": "document",
+      "name": "_template.md",
+      "filePath": "jobs/postmortems/_template.md",
+      "summary": "事故复盘模板（五问法）：事件元数据 / 时间线 / 根因 / 影响 / 改进项，格式必须严肃，支持真事故/模拟事故。",
+      "tags": [
+        "jobs",
+        "template",
+        "postmortem",
+        "five-whys"
+      ],
+      "complexity": "simple",
+      "fileCategory": "docs"
+    },
+    {
+      "id": "document:jobs/_raw/librarian-jd-dump-2026-W19.md",
+      "type": "document",
+      "name": "librarian-jd-dump-2026-W19.md",
+      "filePath": "jobs/_raw/librarian-jd-dump-2026-W19.md",
+      "summary": "librarian agent 原始 JD 转储（完整版）：2025H2-2026 真实 LLM 推理工程师日常任务候选池（140+ 条），来源含字节/阿里/DeepSeek/华为昇腾/NVIDIA/OpenAI，是 jobs_backlog 的上游素材。",
+      "tags": [
+        "jobs",
+        "raw",
+        "source-data",
+        "jd",
+        "upstream"
+      ],
+      "complexity": "complex",
+      "fileCategory": "docs"
+    },
+    {
+      "id": "document:jobs/_raw/librarian-jd-dump-v1-2026-W19.md",
+      "type": "document",
+      "name": "librarian-jd-dump-v1-2026-W19.md",
+      "filePath": "jobs/_raw/librarian-jd-dump-v1-2026-W19.md",
+      "summary": "librarian JD 转储 v1（早期版本）：候选任务池的初版，供对照与追溯 backlog 筛选过程。",
+      "tags": [
+        "jobs",
+        "raw",
+        "source-data",
+        "jd",
+        "upstream"
+      ],
+      "complexity": "complex",
+      "fileCategory": "docs"
+    },
+    {
+      "id": "document:jobs/_raw/librarian-blogs-dump-2026-W19.md",
+      "type": "document",
+      "name": "librarian-blogs-dump-2026-W19.md",
+      "filePath": "jobs/_raw/librarian-blogs-dump-2026-W19.md",
+      "summary": "librarian blog 转储：真实技术博客/文章来源池，供从公开技术内容挖掘实战任务。",
+      "tags": [
+        "jobs",
+        "raw",
+        "source-data",
+        "blog",
+        "upstream"
+      ],
+      "complexity": "moderate",
+      "fileCategory": "docs"
+    },
+    {
+      "id": "document:jobs/_raw/librarian-blogs-backlog-2026-W19.md",
+      "type": "document",
+      "name": "librarian-blogs-backlog-2026-W19.md",
+      "filePath": "jobs/_raw/librarian-blogs-backlog-2026-W19.md",
+      "summary": "librarian blog backlog：从博客挖掘出的任务候选明细（995 行），是 blogs-dump 的加工产物。",
+      "tags": [
+        "jobs",
+        "raw",
+        "source-data",
+        "blog",
+        "upstream"
+      ],
+      "complexity": "complex",
+      "fileCategory": "docs"
+    },
+    {
+      "id": "file:week1/day1/vec_add.cu",
+      "type": "file",
+      "name": "vec_add.cu",
+      "filePath": "week1/day1/vec_add.cu",
+      "summary": "Day 1 手工作业骨架：第一个 CUDA kernel vec_add（c[i]=a[i]+b[i]，N=1<<20 float），含 ISP/NPE/warp-SIMD 类比注释、CUDA_CHECK 宏与 4 个待用户填写的 TODO（全局线程编号/拷贝/启动 grid-block/同步校验）。",
+      "tags": [
+        "cuda",
+        "kernel",
+        "exercise",
+        "skeleton",
+        "todo",
+        "simd"
+      ],
+      "complexity": "simple",
+      "fileCategory": "code"
+    },
+    {
+      "id": "function:week1/day1/vec_add.cu:vec_add",
+      "type": "function",
+      "name": "vec_add",
+      "filePath": "week1/day1/vec_add.cu",
+      "summary": "CUDA __global__ 内核：每个线程负责一个元素 c[i]=a[i]+b[i]，TODO 处让用户用 blockDim/blockIdx/threadIdx 计算全局线程号并做 i<n 边界检查。",
+      "tags": [
+        "kernel",
+        "gpu",
+        "simd"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:week1/day1/vec_add.cu:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "week1/day1/vec_add.cu",
+      "summary": "Host 驱动：cudaMalloc 显存、host 端填充 a[i]=i/b[i]=1、TODO 引导用户完成 memcpy/启动 kernel/同步/校验/释放，末尾打印 NOT RUN (skeleton)。",
+      "tags": [
+        "host",
+        "driver",
+        "skeleton"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:week1/day1/vec_add.cu",
+      "target": "function:week1/day1/vec_add.cu:vec_add",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0,
+      "description": "文件包含内核函数"
+    },
+    {
+      "source": "file:week1/day1/vec_add.cu",
+      "target": "function:week1/day1/vec_add.cu:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0,
+      "description": "文件包含 host 驱动"
+    },
+    {
+      "source": "file:week1/day1/vec_add.cu",
+      "target": "function:week1/day1/vec_add.cu:vec_add",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8,
+      "description": "对外暴露 __global__ 内核"
+    },
+    {
+      "source": "function:week1/day1/vec_add.cu:main",
+      "target": "function:week1/day1/vec_add.cu:vec_add",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8,
+      "description": "启动内核"
+    },
+    {
+      "source": "document:02-week1.md",
+      "target": "file:week1/day1/vec_add.cu",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "Day 1 计划对应的手工作业骨架"
+    },
+    {
+      "source": "document:05-week4.md",
+      "target": "document:06-mini-vllm-design.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "Week 4 项目实现依据本设计文档"
+    },
+    {
+      "source": "document:06-mini-vllm-design.md",
+      "target": "document:05-week4.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "开发顺序与 Day 22-26 对齐"
+    },
+    {
+      "source": "document:02-week1.md",
+      "target": "document:07-resources.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "Week 1 阅读材料来自资源清单"
+    },
+    {
+      "source": "document:03-week2.md",
+      "target": "document:07-resources.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "Week 2 源码/论文来自资源清单"
+    },
+    {
+      "source": "document:04-week3.md",
+      "target": "document:07-resources.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "Week 3 量化/投机解码材料来自资源清单"
+    },
+    {
+      "source": "document:02-week1.md",
+      "target": "document:01-hardware.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "显存/延迟公式依赖硬件参数"
+    },
+    {
+      "source": "document:01-hardware.md",
+      "target": "document:README.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "硬件方案摘要回指总览"
+    },
+    {
+      "source": "document:09-local-coding-agent.md",
+      "target": "document:01-hardware.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "部署画像基于 PRO 6000 96GB"
+    },
+    {
+      "source": "document:jobs/jobs_backlog.md",
+      "target": "document:jobs/_raw/librarian-jd-dump-2026-W19.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "backlog 从 JD 转储筛选"
+    },
+    {
+      "source": "document:jobs/_raw/librarian-blogs-backlog-2026-W19.md",
+      "target": "document:jobs/_raw/librarian-blogs-dump-2026-W19.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "jobs/ 工作流：blog 素材经 librarian 扫描产出后二次筛选/加工成 backlog（README 文档化的编辑流程；非原文复制，内容重叠 Jaccard≈0.005）"
+    },
+    {
+      "source": "document:jobs/jobs_taxonomy.md",
+      "target": "document:jobs/_raw/librarian-jd-dump-2026-W19.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "能力地图引用真实 JD"
+    },
+    {
+      "source": "document:jobs/README.md",
+      "target": "document:jobs/jobs_taxonomy.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "入口指向 15 域能力地图"
+    },
+    {
+      "source": "document:jobs/README.md",
+      "target": "document:jobs/jobs_backlog.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "入口指向主任务列表"
+    },
+    {
+      "source": "document:jobs/README.md",
+      "target": "document:jobs/weekly-radar/2026-W19.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "文件清单引用周雷达"
+    },
+    {
+      "source": "document:jobs/README.md",
+      "target": "document:jobs/tasks/_template.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "文件清单引用任务模板"
+    },
+    {
+      "source": "document:jobs/README.md",
+      "target": "document:jobs/postmortems/_template.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "文件清单引用复盘模板"
+    },
+    {
+      "source": "document:jobs/weekly-radar/2026-W19.md",
+      "target": "document:jobs/jobs_backlog.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "雷达产出的新任务进入 backlog"
+    },
+    {
+      "source": "document:README.md",
+      "target": "document:01-hardware.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "文档间链接引用"
+    },
+    {
+      "source": "document:README.md",
+      "target": "document:02-week1.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "文档间链接引用"
+    },
+    {
+      "source": "document:README.md",
+      "target": "document:03-week2.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "文档间链接引用"
+    },
+    {
+      "source": "document:README.md",
+      "target": "document:04-week3.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "文档间链接引用"
+    },
+    {
+      "source": "document:README.md",
+      "target": "document:05-week4.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "文档间链接引用"
+    },
+    {
+      "source": "document:README.md",
+      "target": "document:06-mini-vllm-design.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "文档间链接引用"
+    },
+    {
+      "source": "document:README.md",
+      "target": "document:07-resources.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "文档间链接引用"
+    },
+    {
+      "source": "document:README.md",
+      "target": "document:08-job-strategy.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "文档间链接引用"
+    },
+    {
+      "source": "document:README.md",
+      "target": "document:09-local-coding-agent.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "文档间链接引用"
+    },
+    {
+      "source": "document:01-hardware.md",
+      "target": "document:02-week1.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "文档间链接引用"
+    },
+    {
+      "source": "document:02-week1.md",
+      "target": "document:08-job-strategy.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "文档间链接引用"
+    },
+    {
+      "source": "document:02-week1.md",
+      "target": "document:03-week2.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "文档间链接引用"
+    },
+    {
+      "source": "document:03-week2.md",
+      "target": "document:08-job-strategy.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "文档间链接引用"
+    },
+    {
+      "source": "document:03-week2.md",
+      "target": "document:04-week3.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "文档间链接引用"
+    },
+    {
+      "source": "document:04-week3.md",
+      "target": "document:08-job-strategy.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "文档间链接引用"
+    },
+    {
+      "source": "document:04-week3.md",
+      "target": "document:05-week4.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "文档间链接引用"
+    },
+    {
+      "source": "document:05-week4.md",
+      "target": "document:08-job-strategy.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "文档间链接引用"
+    },
+    {
+      "source": "document:07-resources.md",
+      "target": "document:08-job-strategy.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "文档间链接引用"
+    },
+    {
+      "source": "document:08-job-strategy.md",
+      "target": "document:09-local-coding-agent.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "文档间链接引用"
+    },
+    {
+      "source": "document:09-local-coding-agent.md",
+      "target": "document:README.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "文档间链接引用"
+    },
+    {
+      "source": "document:09-local-coding-agent.md",
+      "target": "document:02-week1.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "文档间链接引用"
+    },
+    {
+      "source": "document:CLAUDE.md",
+      "target": "document:AGENTS.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "文档间链接引用"
+    },
+    {
+      "source": "document:CLAUDE.md",
+      "target": "document:COACH.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "文档间链接引用"
+    },
+    {
+      "source": "document:CLAUDE.md",
+      "target": "document:progress.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "文档间链接引用"
+    },
+    {
+      "source": "document:progress.md",
+      "target": "document:02-week1.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "文档间链接引用"
+    }
+  ],
+  "layers": [
+    {
+      "id": "layer:entry-and-ai-behavior",
+      "name": "入口与 AI 行为",
+      "description": "仓库导航与 AI 助手行为契约：README 总览、AGENTS.md/CLAUDE.md 入口指针、COACH.md 教练模式 7 条铁律（L1-L4 介入深度、先 Why 再 How、费曼反向检查）。",
+      "nodeIds": [
+        "document:README.md",
+        "document:AGENTS.md",
+        "document:CLAUDE.md",
+        "document:COACH.md"
+      ]
+    },
+    {
+      "id": "layer:daily-curriculum",
+      "name": "逐日课程（Week 1-4）",
+      "description": "30 天的主体：02~05 四份周计划，每天含 🎯 面试题、上午/下午/晚上任务、Checkpoint，覆盖 CUDA 基础→vLLM 源码→量化/投机解码→Mini-vLLM 项目。",
+      "nodeIds": [
+        "document:02-week1.md",
+        "document:03-week2.md",
+        "document:04-week3.md",
+        "document:05-week4.md"
+      ]
+    },
+    {
+      "id": "layer:design-and-deepdive",
+      "name": "设计与专项文档",
+      "description": "支撑性深度文档：硬件落地档案（01）、Mini-vLLM 架构设计（06）、资源清单（07）、求职策略（08）、本地 Coding Agent 部署（09）。",
+      "nodeIds": [
+        "document:01-hardware.md",
+        "document:06-mini-vllm-design.md",
+        "document:07-resources.md",
+        "document:08-job-strategy.md",
+        "document:09-local-coding-agent.md"
+      ]
+    },
+    {
+      "id": "layer:progress-and-reports",
+      "name": "进度跟踪与分析报告",
+      "description": "动态状态与快照产物：progress.md 每日打卡与 re-baseline 记录，两份 HTML 分析报告（项目结构分析、概览与部署分析）。",
+      "nodeIds": [
+        "document:progress.md",
+        "file:analysis-report.html",
+        "file:project-overview.html"
+      ]
+    },
+    {
+      "id": "layer:jobs-backlog",
+      "name": "实战任务 backlog（jobs/）",
+      "description": "选修+课后实战：真实大厂 LLM 推理工程师日常 backlog 子项目，含入口 README、15 域能力地图、30 条精选 backlog、周雷达、任务/复盘模板，以及 librarian 上游 JD/blog 转储素材池。",
+      "nodeIds": [
+        "document:jobs/README.md",
+        "document:jobs/jobs_taxonomy.md",
+        "document:jobs/jobs_backlog.md",
+        "document:jobs/weekly-radar/2026-W19.md",
+        "document:jobs/tasks/_template.md",
+        "document:jobs/postmortems/_template.md",
+        "document:jobs/_raw/librarian-jd-dump-2026-W19.md",
+        "document:jobs/_raw/librarian-jd-dump-v1-2026-W19.md",
+        "document:jobs/_raw/librarian-blogs-dump-2026-W19.md",
+        "document:jobs/_raw/librarian-blogs-backlog-2026-W19.md"
+      ]
+    },
+    {
+      "id": "layer:code-and-config",
+      "name": "代码与仓库配置",
+      "description": "唯一真实代码（Day 1 第一个 CUDA kernel 骨架 vec_add.cu）与仓库级配置（.gitignore）。",
+      "nodeIds": [
+        "file:week1/day1/vec_add.cu",
+        "config:.gitignore"
+      ]
+    }
+  ],
+  "tour": [
+    {
+      "order": 1,
+      "title": "项目总览：30 天转型冲刺",
+      "description": "从 README 入手，理解整个冲刺的目标（ISP/IPU 工程师→LLM 推理工程师）、4 周里程碑 gantt、核心优势（简历主线）与文档导航。这是全仓库的地图。",
+      "nodeIds": [
+        "document:README.md"
+      ]
+    },
+    {
+      "order": 2,
+      "title": "AI 如何进入本仓库",
+      "description": "AGENTS.md 是任何编码助手的入口：仓库定位、硬件关键约束、参考仓库、文件导航、每日学习流程 6 步与 AI 行为规则摘要；CLAUDE.md 只是把它转发到 AGENTS.md + COACH.md。理解这两份文件就知道 AI 在这里的工作方式。",
+      "nodeIds": [
+        "document:AGENTS.md",
+        "document:CLAUDE.md"
+      ]
+    },
+    {
+      "order": 3,
+      "title": "教练行为约束契约",
+      "description": "COACH.md 定义了 AI 与用户的协作规则：7 条铁律（先问学习目标、默认 L1-L2 不代写、先 Why 再 How、费曼反向检查、关联已有知识、诚实标注知识边界、会话末更新 progress），以及 L1-L4 介入深度与每日「面试题先行」流程。这是理解整个仓库运作逻辑的钥匙。",
+      "nodeIds": [
+        "document:COACH.md"
+      ]
+    },
+    {
+      "order": 4,
+      "title": "当前进度：你在第几天",
+      "description": "progress.md 是动态状态：Day 0 硬件落地、2026-10-10 re-baseline（日期重排、主力模型改 Qwen3.8-27B-FP8、vLLM 升 v0.21.0、NVFP4 故障标记）、驱动 NVML mismatch 卡点定位与重启解除、Day 1 打卡模板。看这里就知道冲刺进行到哪。",
+      "nodeIds": [
+        "document:progress.md"
+      ]
+    },
+    {
+      "order": 5,
+      "title": "硬件底座：PRO 6000 Blackwell 96GB",
+      "description": "01-hardware.md 是全计划的物理约束：sm_120（不是 sm_100！）关键差异、Qwen3.8-27B-FP8 显存与 KV cache 预算、PCIe/CUDA 工具链验证命令、BIOS 必设项、电源与内存风险。后面所有 benchmark 公式都以它为基准。",
+      "nodeIds": [
+        "document:01-hardware.md"
+      ]
+    },
+    {
+      "order": 6,
+      "title": "Week 1：CUDA 基础 + LLM 推理原理",
+      "description": "02-week1.md（Day 1-7）：本地 CUDA 工具链校准、第一个 kernel、GEMM 朴素→共享内存→Tensor Core、FlashAttention 原理与 online softmax、LLM 显存/算力/延迟公式（Roofline）、vLLM hello world + benchmark。",
+      "nodeIds": [
+        "document:02-week1.md"
+      ]
+    },
+    {
+      "order": 7,
+      "title": "Week 2：vLLM v0.21 源码深读",
+      "description": "03-week2.md（Day 8-14）：Anatomy of vLLM、Engine+Scheduler 源码、Model Runner V2 与 CUDA Graph Piecewise Capture、PagedAttention+KV Cache Manager+Prefix Caching、MLA+FA4 实战、Disagg Serving、本地部署与 vLLM PR。",
+      "nodeIds": [
+        "document:03-week2.md"
+      ]
+    },
+    {
+      "order": 8,
+      "title": "Week 3：Kernel + 量化 + 投机解码",
+      "description": "04-week3.md（Day 15-21）：Triton 入门、LLM fused kernel、NVFP4 量化部署、FP8+Marlin GEMM、TurboQuant 2bit KV cache、P-EAGLE 投机解码、Hybrid SSM 模型推理。",
+      "nodeIds": [
+        "document:04-week3.md"
+      ]
+    },
+    {
+      "order": 9,
+      "title": "Week 4：Mini-vLLM 项目 + 求职冲刺",
+      "description": "05-week4.md（Day 22-30）：对照 nano-vllm 逐模块实现 Mini-vLLM（Tokenizer/Model Loading/PagedAttention/Scheduler/Engine/FA4+MLA/Benchmark），随后简历投递与面试。",
+      "nodeIds": [
+        "document:05-week4.md"
+      ]
+    },
+    {
+      "order": 10,
+      "title": "Mini-vLLM 架构设计",
+      "description": "06-mini-vllm-design.md 是 Week 4 项目的蓝图：目录结构、整体架构图、6 个核心模块设计（Request/KV Cache Manager/Scheduler/LLM Engine/Attention Backend/OpenAI 兼容 Server）、5 天开发顺序与 nano-vllm 逐模块对照表。",
+      "nodeIds": [
+        "document:06-mini-vllm-design.md"
+      ]
+    },
+    {
+      "order": 11,
+      "title": "第一个 CUDA 手工作业：vec_add",
+      "description": "vec_add.cu 是仓库里唯一的真实代码，也是 Week 1 Day 1 的骨架：c[i]=a[i]+b[i]，含 ISP/NPE/warp-SIMD 类比注释和 4 个待填 TODO（全局线程编号/拷贝/启动 grid-block/同步校验）。main 负责 host 侧分配与校验。",
+      "nodeIds": [
+        "file:week1/day1/vec_add.cu"
+      ],
+      "languageLesson": "CUDA 的 Grid/Block/Thread 三级结构 ≈ 把一张大图切给 NPE 集群的 N 个 core 各处理一个 tile；warp（32 线程锁步）≈ SIMD 向量单元，divergence 就是 lane 被 mask 掉。编译用 nvcc -O2 -arch=sm_120，profile 用 nsys。"
+    },
+    {
+      "order": 12,
+      "title": "求职策略：简历 / 投递 / 面试",
+      "description": "08-job-strategy.md 是冲刺的「出口」：目标公司画像、简历三个钩子与 STAR 项目模板、投递渠道矩阵与内推、30 道八股题库映射到 27 天、系统设计题、薪资谈判与被拒应对、避坑清单与心态管理。",
+      "nodeIds": [
+        "document:08-job-strategy.md"
+      ]
+    },
+    {
+      "order": 13,
+      "title": "本地 Coding Agent：替代 Copilot",
+      "description": "09-local-coding-agent.md 展示了 96GB 卡的生产用法：Qwen3.8-27B-FP8 + vLLM OpenAI 兼容 API 部署、systemd 服务化、OpenCode/Cursor/Continue/Claude Code 客户端集成、Prefix Caching/投机解码调优、与 Copilot 的真实对比。",
+      "nodeIds": [
+        "document:09-local-coding-agent.md"
+      ]
+    },
+    {
+      "order": 14,
+      "title": "完整资源清单",
+      "description": "07-resources.md 汇总按周/优先级排序的论文、博客、书、代码仓库（精读/参考/教学分级）、视频课程、高信噪比人物、社区与面试前突击包、英文术语速查。是逐日计划「晚上 1h 阅读」的来源。",
+      "nodeIds": [
+        "document:07-resources.md"
+      ]
+    },
+    {
+      "order": 15,
+      "title": "实战 backlog：像工程师一样工作",
+      "description": "jobs/README.md 把 30 天之外的「真实大厂日常」变成选修 backlog；jobs/jobs_backlog.md 是精选 30 条可单机复现的任务（T-XXX/Lx/估时/Done definition/来源/关联 Day）。理解它与主计划的衔接方式。",
+      "nodeIds": [
+        "document:jobs/README.md",
+        "document:jobs/jobs_backlog.md"
+      ]
+    },
+    {
+      "order": 16,
+      "title": "LLM 推理工程师能力地图（15 域）",
+      "description": "jobs/jobs_taxonomy.md 定义了 15 个工作域，每个域含「做什么 / 典型 JD 引用 / 公司出现频次★ / 本仓库哪些 Day 触及」，是 backlog 任务的分类坐标系。",
+      "nodeIds": [
+        "document:jobs/jobs_taxonomy.md"
+      ]
+    },
+    {
+      "order": 17,
+      "title": "上游素材池：librarian 转储",
+      "description": "jobs/_raw/ 是 librarian agent 扫描真实 JD/blog 的原始转储（140+ 候选任务），是 jobs_backlog 与能力地图的上游来源。看它如何被二次筛选成可执行的 backlog。",
+      "nodeIds": [
+        "document:jobs/_raw/librarian-jd-dump-2026-W19.md",
+        "document:jobs/_raw/librarian-blogs-backlog-2026-W19.md"
+      ]
+    },
+    {
+      "order": 18,
+      "title": "分析快照：HTML 报告",
+      "description": "analysis-report.html（项目结构自动分析）与 project-overview.html（概览与模型部署分析）是对本仓库两次快照式分析的 HTML 产物，可作为快速浏览全貌的入口。",
+      "nodeIds": [
+        "file:analysis-report.html",
+        "file:project-overview.html"
+      ]
+    }
+  ]
+}
